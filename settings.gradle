@@ -1,0 +1,6 @@
+include 'api'
+include 'app'
+
+include 'plugins'
+
+include 'plugins:kafkaplugin'
