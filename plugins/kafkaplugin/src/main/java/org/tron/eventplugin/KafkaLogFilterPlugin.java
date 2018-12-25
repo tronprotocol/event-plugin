@@ -11,12 +11,10 @@ public class KafkaLogFilterPlugin extends Plugin {
 
     @Override
     public void start() {
-        //log.info("KafkaPlugin.start()");
     }
 
     @Override
     public void stop() {
         MessageSenderImpl.getInstance().close();
-        //log.info("KafkaPlugin.stop()");
     }
 }

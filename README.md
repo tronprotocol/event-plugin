@@ -1,5 +1,11 @@
 # Tron eventsubscribe plugin
 
+This is an implementation of Tron eventsubscribe model. 
+
+* **api** module defines IPluginEventListener, a protocol between Java-tron and event plugin. 
+* **app** module is an example for loading plugin, developers could use it for debugging.
+* **kafkaplugin** module is the implementation for kafka, it implements IPluginEventListener, it receives events subscribed from Java-tron and relay events to kafka server. 
+
 ### Setup/Build
 
 1. Clone the repo
@@ -8,17 +14,16 @@
 
 * This will produce one plugin zip, named `plugin-kafka-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
 
-### Configuration
 
-1. Edit **config.conf** of Java-tron， add the following fileds:
+### Edit **config.conf** of Java-tron， add the following fileds:
 ```
 event.subscribe = {
-    path = "/Users/tron/sourcecode/eventplugin/plugins/kafkaplugin/build/libs/plugin-kafka-1.0.0.zip"
+    path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-kafka-1.0.0.zip"
     server = "127.0.0.1:9092"
     topics = [
         {
           triggerName = "block"
-          enable = false
+          enable = true
           topic = "block"
         },
         {
@@ -47,9 +52,23 @@ event.subscribe = {
  * **enable**: plugin can receive nothing if the value is false.
  * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running
 
-### Load plugin
-* add --es to command line
-* Example: 
+##### Run Kafka
+
+```
+zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
+```
+
+#### Create topics to receive events, the topic is defined in config.conf
+
+```
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+```
+
+### Load plugin in Java-tron
+* add --es to command line, for example:
 ```
  java -jar FullNode.jar -p privatekey -c config.conf --es 
 ```
