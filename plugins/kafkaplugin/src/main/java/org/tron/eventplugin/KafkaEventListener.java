@@ -1,28 +1,15 @@
 package org.tron.eventplugin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tron.common.logsfilter.IPluginEventListener;
-import org.tron.common.logsfilter.trigger.BlockLogTrigger;
-import org.tron.common.logsfilter.trigger.ContractEventTrigger;
-import org.tron.common.logsfilter.trigger.ContractLogTrigger;
-import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
-
-import java.io.IOException;
 import java.util.Objects;
 
 @Extension
 public class KafkaEventListener implements IPluginEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaEventListener.class);
-
-    private ObjectMapper mapper = new ObjectMapper();
-    private String blockTopic = "";
-    private String transactionTopic = "";
-    private String contractEventTopic = "";
-    private String contractLogTopic = "";
 
     @Override
     public void setServerAddress(String address) {
@@ -39,91 +26,43 @@ public class KafkaEventListener implements IPluginEventListener {
 
     @Override
     public void setTopic(int eventType, String topic) {
-        if (eventType == Constant.BLOCK_TRIGGER){
-            blockTopic = topic;
-        }
-        else if (eventType == Constant.TRANSACTION_TRIGGER){
-            transactionTopic = topic;
-        }
-        else if (eventType == Constant.CONTRACTEVENT_TRIGGER){
-            contractEventTopic = topic;
-        }
-        else if (eventType == Constant.CONTRACTLOG_TRIGGER){
-            contractLogTopic = topic;
-        }
+        MessageSenderImpl.getInstance().setTopic(eventType, topic);
     }
 
     @Override
     public void handleBlockEvent(Object data) {
 
-        if (Objects.isNull(data) || Objects.isNull(blockTopic)){
+        if (Objects.isNull(data)){
             return;
         }
 
-        BlockLogTrigger trigger = new BlockLogTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, BlockLogTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
-        }
-
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.BLOCK_TRIGGER, blockTopic, trigger);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 
     @Override
     public void handleTransactionTrigger(Object data) {
-        if (Objects.isNull(data) || Objects.isNull(transactionTopic)){
+        if (Objects.isNull(data)){
             return;
         }
 
-        TransactionLogTrigger trigger = new TransactionLogTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, TransactionLogTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
-        }
-
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.TRANSACTION_TRIGGER, transactionTopic, trigger);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 
     @Override
     public void handleContractLogTrigger(Object data) {
-        if (Objects.isNull(data) || Objects.isNull(contractLogTopic)){
+        if (Objects.isNull(data)){
             return;
         }
 
-
-        System.out.println("handleContractLogTrigger " + data);
-
-        /*ContractLogTrigger trigger = new ContractLogTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, ContractLogTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
-        }*/
-
-        //MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTLOG_TRIGGER, contractLogTopic, trigger);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 
     @Override
     public void handleContractEventTrigger(Object data) {
-        if (Objects.isNull(data) || Objects.isNull(contractEventTopic)){
+        if (Objects.isNull(data)){
             return;
         }
 
-        /*ContractEventTrigger trigger = new ContractEventTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, ContractEventTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
-        }
-
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, trigger);*/
-
-        System.out.println("handleContractEventTrigger " + data);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 }

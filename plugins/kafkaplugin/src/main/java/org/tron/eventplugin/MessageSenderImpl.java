@@ -1,13 +1,16 @@
 package org.tron.eventplugin;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tron.common.logsfilter.trigger.BlockLogTrigger;
-import org.tron.common.logsfilter.trigger.ContractEventTrigger;
-import org.tron.common.logsfilter.trigger.ContractLogTrigger;
-import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
+import org.tron.common.logsfilter.trigger.*;
+
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class MessageSenderImpl{
     private static MessageSenderImpl instance = null;
@@ -20,6 +23,18 @@ public class MessageSenderImpl{
     private boolean loaded = false;
 
     private Map<Integer, KafkaProducer> producerMap = new HashMap<>();
+
+    private ObjectMapper mapper = new ObjectMapper();
+    private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
+
+    private String blockTopic = "";
+    private String transactionTopic = "";
+    private String contractEventTopic = "";
+    private String contractLogTopic = "";
+
+    private Thread triggerProcessThread;
+    private boolean isRunTriggerProcessThread = true;
+
 
     public static MessageSenderImpl getInstance(){
         if (Objects.isNull(instance)) {
@@ -48,8 +63,27 @@ public class MessageSenderImpl{
         createProducer(Constant.CONTRACTLOG_TRIGGER);
         createProducer(Constant.CONTRACTEVENT_TRIGGER);
 
+        triggerProcessThread = new Thread(triggerProcessLoop);
+        triggerProcessThread.start();
+
         loaded = true;
     }
+
+    public void setTopic(int triggerType, String topic){
+        if (triggerType == Constant.BLOCK_TRIGGER){
+            blockTopic = topic;
+        }
+        else if (triggerType == Constant.TRANSACTION_TRIGGER){
+            transactionTopic = topic;
+        }
+        else if (triggerType == Constant.CONTRACTEVENT_TRIGGER){
+            contractEventTopic = topic;
+        }
+        else if (triggerType == Constant.CONTRACTLOG_TRIGGER){
+            contractLogTopic = topic;
+        }
+    }
+
 
     private KafkaProducer createProducer(int eventType){
 
@@ -123,6 +157,94 @@ public class MessageSenderImpl{
 
         producerMap.clear();
     }
+
+    public BlockingQueue<Object> getTriggerQueue(){
+        return triggerQueue;
+    }
+
+    public void handleBlockEvent(Object data) {
+        System.out.println(data);
+        if (blockTopic == null || blockTopic.length() == 0){
+            return;
+        }
+
+        BlockLogTrigger trigger = new BlockLogTrigger();
+
+        try {
+            trigger = mapper.readValue((String)data, BlockLogTrigger.class);
+        } catch (IOException e) {
+            log.error("{}", e);
+        }
+
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.BLOCK_TRIGGER, blockTopic, trigger);
+    }
+
+    public void handleTransactionTrigger(Object data) {
+        System.out.println(data);
+        if (Objects.isNull(data) || Objects.isNull(transactionTopic)){
+            return;
+        }
+
+        TransactionLogTrigger trigger = new TransactionLogTrigger();
+
+        try {
+            trigger = mapper.readValue((String)data, TransactionLogTrigger.class);
+        } catch (IOException e) {
+            log.error("{}", e);
+        }
+
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.TRANSACTION_TRIGGER, transactionTopic, trigger);
+    }
+
+    public void handleContractLogTrigger(Object data) {
+        if (Objects.isNull(data) || Objects.isNull(contractLogTopic)){
+            return;
+        }
+
+        // MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTLOG_TRIGGER, contractLogTopic, trigger);
+    }
+
+    public void handleContractEventTrigger(Object data) {
+        if (Objects.isNull(data) || Objects.isNull(contractEventTopic)){
+            return;
+        }
+
+        // MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, trigger);
+    }
+
+    private Runnable triggerProcessLoop =
+            () -> {
+                while (isRunTriggerProcessThread) {
+                    try {
+                        String triggerData = (String)triggerQueue.poll(1, TimeUnit.SECONDS);
+
+                        if (Objects.isNull(triggerData)){
+                            continue;
+                        }
+
+                        if (triggerData.contains(Trigger.BLOCK_TRIGGER_NAME)){
+                            handleBlockEvent(triggerData);
+                        }
+                        else if (triggerData.contains(Trigger.TRANSACTION_TRIGGER_NAME)){
+                            handleTransactionTrigger(triggerData);
+                        }
+                        else if (triggerData.contains(Trigger.CONTRACTLOG_TRIGGER_NAME)){
+                            handleContractLogTrigger(triggerData);
+                        }
+                        else if (triggerData.contains(Trigger.CONTRACTEVENT_TRIGGER_NAME)){
+                            handleContractEventTrigger(triggerData);
+                        }
+                    } catch (InterruptedException ex) {
+                        log.info(ex.getMessage());
+                        Thread.currentThread().interrupt();
+                    } catch (Exception ex) {
+                        log.error("unknown exception happened in process capsule loop", ex);
+                    } catch (Throwable throwable) {
+                        log.error("unknown throwable happened in process capsule loop", throwable);
+                    }
+                }
+            };
+
 
     public static void main(String[] args){
         MessageSenderImpl.getInstance().init();
