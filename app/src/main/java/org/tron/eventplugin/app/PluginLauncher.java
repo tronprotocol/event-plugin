@@ -67,7 +67,7 @@ public class PluginLauncher {
         });
 
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int index = 0; index < 1000; ++index){
+        for (int index = 0; index < 666; ++index){
             BlockLogTrigger trigger = new BlockLogTrigger();
             trigger.setBlockNumber(index);
             trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");

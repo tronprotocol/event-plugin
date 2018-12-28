@@ -12,6 +12,8 @@ dependencies {
   compile "org.projectlombok:lombok:1.16.18"
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.5'
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.8.5'
+  compile "com.madgag.spongycastle:core:1.58.0.0"
+  compile "com.madgag.spongycastle:prov:1.58.0.0"
 }
 
 task uberjar(type: Jar, dependsOn: ['compileJava']) {
