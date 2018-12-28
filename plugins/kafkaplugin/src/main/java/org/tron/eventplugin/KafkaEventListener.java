@@ -94,15 +94,18 @@ public class KafkaEventListener implements IPluginEventListener {
             return;
         }
 
-        ContractLogTrigger trigger = new ContractLogTrigger();
+
+        System.out.println("handleContractLogTrigger " + data);
+
+        /*ContractLogTrigger trigger = new ContractLogTrigger();
 
         try {
             trigger = mapper.readValue((String)data, ContractLogTrigger.class);
         } catch (IOException e) {
             log.error("{}", e);
-        }
+        }*/
 
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTLOG_TRIGGER, contractLogTopic, trigger);
+        //MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTLOG_TRIGGER, contractLogTopic, trigger);
     }
 
     @Override
@@ -111,7 +114,7 @@ public class KafkaEventListener implements IPluginEventListener {
             return;
         }
 
-        ContractEventTrigger trigger = new ContractEventTrigger();
+        /*ContractEventTrigger trigger = new ContractEventTrigger();
 
         try {
             trigger = mapper.readValue((String)data, ContractEventTrigger.class);
@@ -119,6 +122,8 @@ public class KafkaEventListener implements IPluginEventListener {
             log.error("{}", e);
         }
 
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, trigger);
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, trigger);*/
+
+        System.out.println("handleContractEventTrigger " + data);
     }
 }
