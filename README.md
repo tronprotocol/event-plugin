@@ -75,17 +75,21 @@ kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partit
 
 #### Set event plugin config via http
 ```
-http://localhost:8090/wallet/setEventPluginConfig
+url: http://localhost:8090/wallet/setEventPluginConfig
+parameters: TriggerInfo list, which are serialized in json format
+
+message TriggerInfo{
+    string triggerName = 1;
+    bool enable = 2;
+    string topic = 3;
+}
+
 ```
 
 ### Set event plugin config via grpc
 ```
 Wallet-cli:setEventPluginConfig
-```
-
-### Tron event subscribe model
-```
-* Please refer to https://github.com/tronprotocol/TIPs/issues/12
+command: setEventPluginConfig  block|true transaction|false
 ```
 
 ### Event filter
@@ -107,10 +111,25 @@ filter = {
 ```
 #### Set event plugin filter via http
 ```
-http://localhost:8090/wallet/seteventfilter
+url: http://localhost:8090/wallet/seteventfilter
+parameters: EventFilter object, which is seralized in json format
+
+message EventFilter {
+    string fromBlock = 1;
+    string toBlock = 2;
+    repeated string contractAddress = 3;
+    repeated string contractTopic = 4;
+}
+
 ```
 
 #### Set eventFilter via grpc
 ```
 Wallet-cli: seteventfilter
+command: seteventfilter 100 1000 address1|address2 topic1|topic2
+```
+
+### Tron event subscribe model
+```
+* Please refer to https://github.com/tronprotocol/TIPs/issues/12
 ```
