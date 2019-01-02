@@ -62,14 +62,6 @@ public class ContractTrigger extends Trigger{
     private boolean removed;
 
 
-    public ContractTrigger(String txId, String contractAddress, String callerAddress,
-                         String originAddress, String creatorAddress, Long blockNum, Long blockTimestamp){
-        this.txId = txId;
-        this.contractAddress = contractAddress;
-        this.callerAddress = callerAddress;
-        this.originAddress = originAddress;
-        this.creatorAddress = creatorAddress;
-        this.blockNum = blockNum;
-        this.blockTimestamp = blockTimestamp;
+    public ContractTrigger(){
     }
 }

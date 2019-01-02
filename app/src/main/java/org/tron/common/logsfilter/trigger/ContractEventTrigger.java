@@ -29,9 +29,8 @@ public class ContractEventTrigger extends ContractLogTrigger{
   private Map<String, Object> dataMap;
 
 
-  public ContractEventTrigger(String txId, String contractAddress, String callerAddress,
-                              String originAddress, String creatorAddress, Long blockNum, Long blockTimestamp){
-    super(txId, contractAddress, callerAddress, originAddress, creatorAddress, blockNum, blockTimestamp);
+  public ContractEventTrigger(){
+    super();
     setTriggerName(Trigger.CONTRACTEVENT_TRIGGER_NAME);
   }
 

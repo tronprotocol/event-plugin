@@ -2,6 +2,8 @@ package org.tron.eventplugin;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -102,6 +104,12 @@ public class MessageSenderImpl{
         return producer;
     }
 
+    private void printTimestamp(String data){
+        Date date = new Date();
+        SimpleDateFormat ft = new SimpleDateFormat("hh:mm:ss:SSS");
+        System.out.println(ft.format(date) + ": " + data);
+    }
+
     public void sendKafkaRecord(int eventType, String kafkaTopic, Object data){
         System.out.println(data);
 
@@ -121,6 +129,8 @@ public class MessageSenderImpl{
         } catch (Exception e) {
            log.error("sendKafkaRecord {}", e);
         }
+
+        printTimestamp((String)data);
     }
 
     public void close() {

@@ -22,9 +22,8 @@ public class ContractLogTrigger extends ContractTrigger{
     @Setter
     private byte[] data;
 
-    public ContractLogTrigger(String txId, String contractAddress, String callerAddress,
-                              String originAddress, String creatorAddress, Long blockNum, Long blockTimestamp) {
-        super(txId, contractAddress, callerAddress, originAddress, creatorAddress, blockNum, blockTimestamp);
+    public ContractLogTrigger() {
+        super();
         setTriggerName(Trigger.CONTRACTLOG_TRIGGER_NAME);
     }
 
