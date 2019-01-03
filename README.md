@@ -23,12 +23,12 @@ event.subscribe = {
     topics = [
         {
           triggerName = "block"
-          enable = true
+          enable = false
           topic = "block"
         },
         {
           triggerName = "transaction"
-          enable = true
+          enable = false
           topic = "transaction"
         },
         {
@@ -96,18 +96,16 @@ command: setEventPluginConfig  block|true transaction|false
 which is defined in config.conf, path: event.subscribe
 ```
 filter = {
-       fromblock = ""
-       toblock = ""
+       fromblock = "" // the value could be "", "earliest" or a specified block number as the beginning of the queried range
+       toblock = "" // the value could be "", "latest" or a specified block number as end of the queried range
        contractAddress = [
-           "address1",
-           "address2"
+           "TVkNuE1BYxECWq85d8UR9zsv6WppBns9iH" // contract address you want to subscribe, if it's set to "", you will receive contract logs/events with any contract address.
        ]
 
        contractTopic = [
-            "topic1",
-            "topic2"
+           "f0f1e23ddce8a520eaa7502e02fa767cb24152e9a86a4bf02529637c4e57504b" // contract topic you want to subscribe, if it's set to "", you will receive contract logs/events with any contract topic.
        ]
- }
+    }
 ```
 #### Set event plugin filter via http
 ```
@@ -127,6 +125,8 @@ message EventFilter {
 ```
 Wallet-cli: seteventfilter
 command: seteventfilter 100 1000 address1|address2 topic1|topic2
+if parameter is null, input *
+for example: seteventfilter * * * *, which means any contract log or event will be subscribed.
 ```
 
 ### Tron event subscribe model
