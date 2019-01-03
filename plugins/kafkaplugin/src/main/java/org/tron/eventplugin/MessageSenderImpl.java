@@ -111,8 +111,6 @@ public class MessageSenderImpl{
     }
 
     public void sendKafkaRecord(int eventType, String kafkaTopic, Object data){
-        System.out.println(data);
-
         KafkaProducer producer = producerMap.get(eventType);
         if (Objects.isNull(producer)){
             return;

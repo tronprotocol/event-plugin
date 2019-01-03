@@ -4,7 +4,7 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
-public class ContractEventTrigger extends ContractLogTrigger{
+public class ContractEventTrigger extends ContractTrigger{
   /**
    * decode from sha3($EventSignature) with the ABI of this contract.
    */
@@ -18,7 +18,7 @@ public class ContractEventTrigger extends ContractLogTrigger{
    */
   @Getter
   @Setter
-  private Map<String, Object> topicMap;
+  private Map<String, String> topicMap;
 
   /**
    * multi data items will be concat into a single string.
@@ -26,37 +26,11 @@ public class ContractEventTrigger extends ContractLogTrigger{
    */
   @Getter
   @Setter
-  private Map<String, Object> dataMap;
+  private Map<String, String> dataMap;
 
 
   public ContractEventTrigger(){
     super();
     setTriggerName(Trigger.CONTRACTEVENT_TRIGGER_NAME);
-  }
-
-  @Override
-  public String toString(){
-    return new StringBuilder().append("timestamp: ")
-            .append(timeStamp)
-            .append(", blockNum: ")
-            .append(getBlockNum())
-            .append(", blockTimestamp: ")
-            .append(getTimeStamp())
-            .append(", txId: ")
-            .append(getTxId())
-            .append(", contractAddress: ")
-            .append(getContractAddress())
-            .append(", callerAddress: ")
-            .append(getCallerAddress())
-            .append(", creatorAddress: ")
-            .append(getCallerAddress())
-            .append(", eventSignature: ")
-            .append(eventSignature)
-            .append(", data: ")
-            .append(dataMap)
-            .append(", contractTopicMap")
-            .append(topicMap)
-            .append(", removed: ")
-            .append(isRemoved()).toString();
   }
 }
