@@ -24,6 +24,7 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import org.tron.common.logsfilter.IPluginEventListener;
 import org.tron.common.logsfilter.trigger.BlockLogTrigger;
+import org.tron.common.logsfilter.trigger.Trigger;
 
 import java.io.File;
 import java.util.List;
@@ -60,10 +61,10 @@ public class PluginLauncher {
         });
 
         eventListeners.forEach(listener -> {
-            listener.setTopic(0, "block");
-            listener.setTopic(1, "transaction");
-            listener.setTopic(2, "contractevent");
-            listener.setTopic(3, "contractlog");
+            listener.setTopic(Trigger.BLOCK_TRIGGER, "block");
+            listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
+            listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
+            listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
         });
 
         ObjectMapper objectMapper = new ObjectMapper();
