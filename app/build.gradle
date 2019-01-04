@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-mainClassName = 'org.tron.eventplugin.app.appMain'
+mainClassName = 'org.tron.eventplugin.app.PluginLauncher'
 
 dependencies {
   compile project(':api')
