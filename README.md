@@ -53,25 +53,26 @@ event.subscribe = {
  * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running
 
 ##### Install Kafka
-On Mac:
+* **On Mac**:
 ```
 brew install kafka
 ```
 
-On Linux:
+* **On Linux**:
 ```
 cd /usr/local
-wget http://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz
-tar -xzvf kafka_2.11-0.8.2.1.tgz
-mv kafka_2.11-0.8.2.1 kafka
+wget http://archive.apache.org/dist/kafka/0.10.2.2/kafka_2.10-0.10.2.2.tgz
+tar -xzvf kafka_2.10-0.10.2.2.tgz 
+mv kafka_2.10-0.10.2.2 kafka
 
 add "export PATH=$PATH:/usr/local/kafka/bin" to end of /etc/profile
 source /etc/profile
 
 
 kafka-server-start.sh /usr/local/kafka/config/server.properties &
-```
 
+```
+**Note**: make sure the version of Kafka is the same as the version set in build.gradle of eventplugin project.(kafka_2.10-0.10.2.2 kafka)
 
 ##### Run Kafka
 On Mac:
@@ -80,7 +81,11 @@ zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-
 ```
 
 On Linux:
-/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+zookeeper-server-start.sh /usr/local/kafka/config/zookeeper.properties &
+
+Sleep about 3 seconds 
+
+kafka-server-start.sh /usr/local/kafka/config/server.properties &
 
 
 #### Create topics to receive events, the topic is defined in config.conf
