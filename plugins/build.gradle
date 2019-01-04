@@ -9,6 +9,13 @@ subprojects {
   }
 
   task plugin(type: Jar) {
+    manifest {
+      attributes 'Plugin-Class': "${pluginClass}",
+              'Plugin-Id': "${pluginId}",
+              'Plugin-Version': "${version}",
+              'Plugin-Provider': "${pluginProvider}"
+    }
+
     baseName = "plugin-${pluginId}"
     into('classes') {
       with jar

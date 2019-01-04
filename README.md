@@ -52,19 +52,71 @@ event.subscribe = {
  * **enable**: plugin can receive nothing if the value is false.
  * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running
 
-##### Run Kafka
+##### Install Kafka
+On Mac:
+```
+brew install kafka
+```
 
+On Linux:
+```
+cd /usr/local
+wget http://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz
+tar -xzvf kafka_2.11-0.8.2.1.tgz
+mv kafka_2.11-0.8.2.1 kafka
+
+add "export PATH=$PATH:/usr/local/kafka/bin" to end of /etc/profile
+source /etc/profile
+
+
+kafka-server-start.sh /usr/local/kafka/config/server.properties &
+```
+
+
+##### Run Kafka
+On Mac:
 ```
 zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 ```
 
+On Linux:
+/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties &
+
+
 #### Create topics to receive events, the topic is defined in config.conf
 
+On Mac:
 ```
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+```
+
+On Linux:
+```
+kafka-topics.sh  --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+```
+
+#### Kafka consumer
+
+On Mac:
+```
+kafka-console-consumer --bootstrap-server localhost:9092  --topic block --from-beginning
+kafka-console-consumer --bootstrap-server localhost:9092  --topic transaction --from-beginning
+kafka-console-consumer --bootstrap-server localhost:9092  --topic contractlog --from-beginning
+kafka-console-consumer --bootstrap-server localhost:9092  --topic contractevent --from-beginning
+```
+
+On Linux:
+```
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic block --from-beginning
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic transaction --from-beginning
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractlog --from-beginning
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractevent --from-beginning
 ```
 
 ### Load plugin in Java-tron
