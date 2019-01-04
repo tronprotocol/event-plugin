@@ -50,7 +50,10 @@ event.subscribe = {
  * **topics**: each event type maps to one Kafka topic, we support four event types subscribing, block, transaction, contractlog and contractevent.
  * **triggerName**: the trigger type, the value can't be modified.
  * **enable**: plugin can receive nothing if the value is false.
- * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running
+ * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running  
+ **note**: if the server is not 127.0.0.1, pls set some properties in config/server.properties file  
+           remove comment 31 line, set listeners=PLAINTEXT://:9092  
+           remove comment 36 line, set advertised.listeners to PLAINTEXT://host_ip:9092 
 
 ##### Install Kafka
 **On Mac**:
