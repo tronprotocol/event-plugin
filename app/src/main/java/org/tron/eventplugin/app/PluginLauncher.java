@@ -34,7 +34,7 @@ public class PluginLauncher {
     private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
     public static void main(String[] args) {
-        String path = "/home/java-tron/plugin-kafka-1.0.0.zip";
+        String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
 
         File dir = new File(path);
         // create the plugin manager
