@@ -112,18 +112,18 @@ kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --par
 
 **On Mac**:
 ```
-kafka-console-consumer --bootstrap-server localhost:9092  --topic block --from-beginning
-kafka-console-consumer --bootstrap-server localhost:9092  --topic transaction --from-beginning
-kafka-console-consumer --bootstrap-server localhost:9092  --topic contractlog --from-beginning
-kafka-console-consumer --bootstrap-server localhost:9092  --topic contractevent --from-beginning
+kafka-console-consumer --bootstrap-server localhost:9092  --topic block
+kafka-console-consumer --bootstrap-server localhost:9092  --topic transaction
+kafka-console-consumer --bootstrap-server localhost:9092  --topic contractlog
+kafka-console-consumer --bootstrap-server localhost:9092  --topic contractevent
 ```
 
 **On Linux**:
 ```
-kafka-console-consumer.sh --zookeeper localhost:2181 --topic block --from-beginning
-kafka-console-consumer.sh --zookeeper localhost:2181 --topic transaction --from-beginning
-kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractlog --from-beginning
-kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractevent --from-beginning
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic block
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic transaction
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractlog
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractevent
 ```
 
 ### Load plugin in Java-tron
