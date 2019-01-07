@@ -9,6 +9,10 @@ import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
+import org.tron.common.logsfilter.trigger.BlockLogTrigger;
+import org.tron.common.logsfilter.trigger.ContractEventTrigger;
+import org.tron.common.logsfilter.trigger.ContractLogTrigger;
+import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
 import org.tron.orm.mongo.EventLogMongoDao;
 import org.tron.orm.mongo.entity.EventLogEntity;
 
@@ -17,7 +21,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Repository("eventLogMongoDaoImpl")
-public class EventLogMongoDaoImpl<T> implements EventLogMongoDao<T> {
+public class EventLogMongoDaoImpl<T> implements EventLogMongoDao {
 
   private static Logger log = LoggerFactory.getLogger(EventLogMongoDaoImpl.class);
 
@@ -47,7 +51,43 @@ public class EventLogMongoDaoImpl<T> implements EventLogMongoDao<T> {
   }
 
   @Override
-  public void insert(Object object, String collectionName) {
+  public void insertBlockTrigger(BlockLogTrigger object, String collectionName) {
+    boolean collectionExists = this.checkCollection(collectionName);
+    mongoTemplate.insert(object, collectionName);
+    if (!collectionExists) {
+      this.createIndex("event_name", collectionName);
+      this.createIndex("transaction_id", collectionName);
+      this.createIndex("block_timestamp", collectionName);
+      this.createIndex("block_number", collectionName);
+    }
+  }
+
+  @Override
+  public void insertTransactionTrigger(TransactionLogTrigger object, String collectionName) {
+    boolean collectionExists = this.checkCollection(collectionName);
+    mongoTemplate.insert(object, collectionName);
+    if (!collectionExists) {
+      this.createIndex("event_name", collectionName);
+      this.createIndex("transaction_id", collectionName);
+      this.createIndex("block_timestamp", collectionName);
+      this.createIndex("block_number", collectionName);
+    }
+  }
+
+  @Override
+  public void insertContractLogTrigger(ContractLogTrigger object, String collectionName) {
+    boolean collectionExists = this.checkCollection(collectionName);
+    mongoTemplate.insert(object, collectionName);
+    if (!collectionExists) {
+      this.createIndex("event_name", collectionName);
+      this.createIndex("transaction_id", collectionName);
+      this.createIndex("block_timestamp", collectionName);
+      this.createIndex("block_number", collectionName);
+    }
+  }
+
+  @Override
+  public void insertContractEventTrigger(ContractEventTrigger object, String collectionName) {
     boolean collectionExists = this.checkCollection(collectionName);
     mongoTemplate.insert(object, collectionName);
     if (!collectionExists) {

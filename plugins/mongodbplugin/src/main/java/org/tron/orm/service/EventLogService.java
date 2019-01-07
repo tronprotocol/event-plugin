@@ -1,14 +1,19 @@
 package org.tron.orm.service;
 
+import org.tron.common.logsfilter.trigger.BlockLogTrigger;
+import org.tron.common.logsfilter.trigger.ContractEventTrigger;
+import org.tron.common.logsfilter.trigger.ContractLogTrigger;
+import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
 import org.tron.orm.mongo.entity.EventLogEntity;
 
 import java.util.List;
 
 public interface EventLogService {
 
-  public void insertEventLog(EventLogEntity eventLog);
-
-  public void insertEventLogCollection(EventLogEntity eventLog, String collectionName);
+  public void insertBlockTrigger(BlockLogTrigger trigger);
+  public void insertTransactionTrigger(TransactionLogTrigger trigger);
+  public void insertContractLogTrigger(ContractLogTrigger trigger);
+  public void insertContractEventTrigger(ContractEventTrigger trigger);
 
   public List<EventLogEntity> findAll(String contractAddressHexString);
 

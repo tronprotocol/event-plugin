@@ -15,6 +15,6 @@ public class MongodbLogFilterPlugin extends Plugin {
 
     @Override
     public void stop() {
-        MessageSenderImpl.getInstance().close();
+        MongodbSenderImpl.getInstance().close();
     }
 }

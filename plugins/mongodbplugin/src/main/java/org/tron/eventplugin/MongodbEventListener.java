@@ -18,15 +18,15 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().setServerAddress(address);
+        MongodbSenderImpl.getInstance().setServerAddress(address);
 
         // MessageSenderImpl should never init until server address is set
-        MessageSenderImpl.getInstance().init();
+        MongodbSenderImpl.getInstance().init();
     }
 
     @Override
     public void setTopic(int eventType, String topic) {
-        MessageSenderImpl.getInstance().setTopic(eventType, topic);
+        MongodbSenderImpl.getInstance().setTopic(eventType, topic);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 
     @Override
@@ -63,6 +63,6 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
 }

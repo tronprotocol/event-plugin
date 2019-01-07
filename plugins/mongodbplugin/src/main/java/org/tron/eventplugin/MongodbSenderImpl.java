@@ -1,16 +1,23 @@
 package org.tron.eventplugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.tron.common.logsfilter.trigger.BlockLogTrigger;
+import org.tron.common.logsfilter.trigger.ContractEventTrigger;
+import org.tron.common.logsfilter.trigger.ContractLogTrigger;
+import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
+import org.tron.orm.service.impl.EventLogServiceImpl;
 
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class MessageSenderImpl{
-    private static MessageSenderImpl instance = null;
-    private static final Logger log = LoggerFactory.getLogger(MessageSenderImpl.class);
+public class MongodbSenderImpl{
+    private static MongodbSenderImpl instance = null;
+    private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
 
     private String serverAddress = "";
     private boolean loaded = false;
@@ -25,12 +32,17 @@ public class MessageSenderImpl{
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
 
+    private ObjectMapper mapper = new ObjectMapper();
 
-    public static MessageSenderImpl getInstance(){
+    @Autowired
+    private EventLogServiceImpl eventLogService;
+
+
+    public static MongodbSenderImpl getInstance(){
         if (Objects.isNull(instance)) {
-            synchronized (MessageSenderImpl.class){
+            synchronized (MongodbSenderImpl.class){
                 if (Objects.isNull(instance)){
-                    instance = new MessageSenderImpl();
+                    instance = new MongodbSenderImpl();
                 }
             }
         }
@@ -47,6 +59,8 @@ public class MessageSenderImpl{
         if (loaded){
             return;
         }
+
+        eventLogService = new EventLogServiceImpl();
 
         triggerProcessThread = new Thread(triggerProcessLoop);
         triggerProcessThread.start();
@@ -69,18 +83,7 @@ public class MessageSenderImpl{
         }
     }
 
-    private void printTimestamp(String data){
-        Date date = new Date();
-        SimpleDateFormat ft = new SimpleDateFormat("hh:mm:ss:SSS");
-        System.out.println(ft.format(date) + ": " + data);
-    }
-
-
     public void close() {
-    }
-
-    public void insertDBRecord(int eventType, String eventTopic, Object data){
-        System.out.println("insertDBRecord: " + eventType + ", " + eventTopic + ", " + data);
     }
 
     public BlockingQueue<Object> getTriggerQueue(){
@@ -92,7 +95,14 @@ public class MessageSenderImpl{
             return;
         }
 
-        MessageSenderImpl.getInstance().insertDBRecord(Constant.BLOCK_TRIGGER, blockTopic, data);
+        BlockLogTrigger trigger = new BlockLogTrigger();
+
+        try {
+            trigger = mapper.readValue((String)data, BlockLogTrigger.class);
+        } catch (IOException e) {
+            log.error("{}", e);
+        }
+        eventLogService.insertBlockTrigger(trigger);
     }
 
     public void handleTransactionTrigger(Object data) {
@@ -100,7 +110,15 @@ public class MessageSenderImpl{
             return;
         }
 
-        MessageSenderImpl.getInstance().insertDBRecord(Constant.TRANSACTION_TRIGGER, transactionTopic, data);
+        TransactionLogTrigger trigger = new TransactionLogTrigger();
+
+        try {
+            trigger = mapper.readValue((String)data, TransactionLogTrigger.class);
+        } catch (IOException e) {
+            log.error("{}", e);
+        }
+        eventLogService.insertTransactionTrigger(trigger);
+
     }
 
     public void handleContractLogTrigger(Object data) {
@@ -108,7 +126,15 @@ public class MessageSenderImpl{
             return;
         }
 
-        MessageSenderImpl.getInstance().insertDBRecord(Constant.CONTRACTLOG_TRIGGER, contractLogTopic, data);
+        ContractLogTrigger trigger = new ContractLogTrigger();
+
+        try {
+            trigger = mapper.readValue((String)data, ContractLogTrigger.class);
+        } catch (IOException e) {
+            log.error("{}", e);
+        }
+
+        eventLogService.insertContractLogTrigger(trigger);
     }
 
     public void handleContractEventTrigger(Object data) {
@@ -116,7 +142,14 @@ public class MessageSenderImpl{
             return;
         }
 
-        MessageSenderImpl.getInstance().insertDBRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, data);
+        ContractEventTrigger trigger = new ContractEventTrigger();
+
+        try {
+            trigger = mapper.readValue((String)data, ContractEventTrigger.class);
+        } catch (IOException e) {
+            log.error("{}", e);
+        }
+        eventLogService.insertContractEventTrigger(trigger);
     }
 
     private Runnable triggerProcessLoop =
