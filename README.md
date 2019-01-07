@@ -52,8 +52,8 @@ event.subscribe = {
  * **enable**: plugin can receive nothing if the value is false.
  * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running  
  **note**: if the server is not 127.0.0.1, pls set some properties in config/server.properties file  
-           remove comment 31 line, set listeners=PLAINTEXT://:9092  
-           remove comment 36 line, set advertised.listeners to PLAINTEXT://host_ip:9092 
+           remove comment and set listeners=PLAINTEXT://:9092  
+           remove comment and set advertised.listeners to PLAINTEXT://host_ip:9092 
 
 ##### Install Kafka
 **On Mac**:
