@@ -1,19 +1,14 @@
 package org.tron.eventplugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.tron.common.logsfilter.trigger.BlockLogTrigger;
-import org.tron.common.logsfilter.trigger.ContractEventTrigger;
-import org.tron.common.logsfilter.trigger.ContractLogTrigger;
-import org.tron.common.logsfilter.trigger.TransactionLogTrigger;
-import org.tron.orm.service.impl.EventLogServiceImpl;
-
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.tron.mongodb.MongoConfig;
+import org.tron.mongodb.MongoManager;
+import org.tron.mongodb.MongoTemplate;
 
 public class MongodbSenderImpl{
     private static MongodbSenderImpl instance = null;
@@ -32,10 +27,10 @@ public class MongodbSenderImpl{
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private MongoManager mongoManager;
+    private Map<String, MongoTemplate> mongoTemplateMap;
 
-    @Autowired
-    private EventLogServiceImpl eventLogService;
+    private ObjectMapper mapper = new ObjectMapper();
 
 
     public static MongodbSenderImpl getInstance(){
@@ -60,13 +55,52 @@ public class MongodbSenderImpl{
             return;
         }
 
-        eventLogService = new EventLogServiceImpl();
-
         triggerProcessThread = new Thread(triggerProcessLoop);
         triggerProcessThread.start();
-
         loaded = true;
+
+        initMongoConfig();
+
     }
+
+    private void initMongoConfig(){
+        mongoManager = new MongoManager();
+        mongoTemplateMap = new HashMap<>();
+
+        MongoConfig config = new MongoConfig();
+        config.setDbName("eventlog");
+        config.setHost("127.0.0.1");
+        config.setPort(27017);
+        config.setUsername("tron");
+        config.setPassword("123456");
+
+        mongoManager.initConfig(config);
+    }
+
+    private MongoTemplate createMongoTemplate(final String collectionName){
+
+        MongoTemplate template = mongoTemplateMap.get(collectionName);
+        if (Objects.nonNull(template)){
+            return template;
+        }
+
+        template = new MongoTemplate(mongoManager) {
+            @Override
+            protected String collectionName() {
+                return collectionName;
+            }
+
+            @Override
+            protected <T> Class<T> getReferencedClass() {
+                return null;
+            }
+        };
+
+        mongoTemplateMap.put(collectionName, template);
+
+        return template;
+    }
+
 
     public void setTopic(int triggerType, String topic){
         if (triggerType == Constant.BLOCK_TRIGGER){
@@ -81,6 +115,12 @@ public class MongodbSenderImpl{
         else if (triggerType == Constant.CONTRACTLOG_TRIGGER){
             contractLogTopic = topic;
         }
+        else {
+            return;
+        }
+
+        mongoManager.createCollection(topic);
+        createMongoTemplate(topic);
     }
 
     public void close() {
@@ -95,14 +135,10 @@ public class MongodbSenderImpl{
             return;
         }
 
-        BlockLogTrigger trigger = new BlockLogTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, BlockLogTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
+        MongoTemplate template = mongoTemplateMap.get(blockTopic);
+        if (Objects.nonNull(template)){
+            template.addEntity((String)data);
         }
-        eventLogService.insertBlockTrigger(trigger);
     }
 
     public void handleTransactionTrigger(Object data) {
@@ -110,15 +146,10 @@ public class MongodbSenderImpl{
             return;
         }
 
-        TransactionLogTrigger trigger = new TransactionLogTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, TransactionLogTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
+        MongoTemplate template = mongoTemplateMap.get(transactionTopic);
+        if (Objects.nonNull(template)){
+            template.addEntity((String)data);
         }
-        eventLogService.insertTransactionTrigger(trigger);
-
     }
 
     public void handleContractLogTrigger(Object data) {
@@ -126,15 +157,10 @@ public class MongodbSenderImpl{
             return;
         }
 
-        ContractLogTrigger trigger = new ContractLogTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, ContractLogTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
+        MongoTemplate template = mongoTemplateMap.get(contractLogTopic);
+        if (Objects.nonNull(template)){
+            template.addEntity((String)data);
         }
-
-        eventLogService.insertContractLogTrigger(trigger);
     }
 
     public void handleContractEventTrigger(Object data) {
@@ -142,14 +168,10 @@ public class MongodbSenderImpl{
             return;
         }
 
-        ContractEventTrigger trigger = new ContractEventTrigger();
-
-        try {
-            trigger = mapper.readValue((String)data, ContractEventTrigger.class);
-        } catch (IOException e) {
-            log.error("{}", e);
+        MongoTemplate template = mongoTemplateMap.get(contractEventTopic);
+        if (Objects.nonNull(template)){
+            template.addEntity((String)data);
         }
-        eventLogService.insertContractEventTrigger(trigger);
     }
 
     private Runnable triggerProcessLoop =
