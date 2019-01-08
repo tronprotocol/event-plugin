@@ -1,5 +1,8 @@
 package org.tron.eventplugin;
 import org.pf4j.util.StringUtils;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
@@ -7,6 +10,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
@@ -14,6 +18,8 @@ import org.tron.mongodb.MongoTemplate;
 public class MongodbSenderImpl{
     private static MongodbSenderImpl instance = null;
     private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
+    ExecutorService service = Executors.newFixedThreadPool(8);
+    List<ListenableFuture<?>> futures = new ArrayList<>();
 
     private String serverAddress = "";
     private boolean loaded = false;
@@ -157,11 +163,14 @@ public class MongodbSenderImpl{
         if (blockTopic == null || blockTopic.length() == 0){
             return;
         }
-
         MongoTemplate template = mongoTemplateMap.get(blockTopic);
-        if (Objects.nonNull(template)){
-            template.addEntity((String)data);
-            System.out.println("handleBlockEvent " + data);
+        if (Objects.nonNull(template)) {
+            service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    template.addEntity((String)data);
+                }
+            });
         }
     }
 
@@ -170,9 +179,15 @@ public class MongodbSenderImpl{
             return;
         }
 
+
         MongoTemplate template = mongoTemplateMap.get(transactionTopic);
-        if (Objects.nonNull(template)){
-            template.addEntity((String)data);
+        if (Objects.nonNull(template)) {
+            service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    template.addEntity((String)data);
+                }
+            });
         }
     }
 
@@ -182,8 +197,13 @@ public class MongodbSenderImpl{
         }
 
         MongoTemplate template = mongoTemplateMap.get(contractLogTopic);
-        if (Objects.nonNull(template)){
-            template.addEntity((String)data);
+        if (Objects.nonNull(template)) {
+            service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    template.addEntity((String)data);
+                }
+            });
         }
     }
 
@@ -193,8 +213,13 @@ public class MongodbSenderImpl{
         }
 
         MongoTemplate template = mongoTemplateMap.get(contractEventTopic);
-        if (Objects.nonNull(template)){
-            template.addEntity((String)data);
+        if (Objects.nonNull(template)) {
+            service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    template.addEntity((String)data);
+                }
+            });
         }
     }
 

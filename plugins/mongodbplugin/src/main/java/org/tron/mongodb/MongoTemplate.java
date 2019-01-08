@@ -42,19 +42,19 @@ public abstract class MongoTemplate {
         }
     }
 
-    public void addList(List<Document> documents) {
-        MongoCollection<Document> collection = getCollection();
-        collection.insertMany(documents);
-    }
-
-    public void addEntityList(List<Serializable> entities) {
+    public void addEntityList(List<String> entities) {
         MongoCollection<Document> collection = getCollection();
         List<Document> documents = new ArrayList<Document>();
         if (entities != null && !entities.isEmpty()) {
-            for (Serializable entity : entities) {
+            for (String entity : entities) {
                 documents.add(Converter.jsonStringToDocument(Converter.objectToJsonString(entity)));
             }
         }
+        collection.insertMany(documents);
+    }
+
+    public void addList(List<Document> documents) {
+        MongoCollection<Document> collection = getCollection();
         collection.insertMany(documents);
     }
 
