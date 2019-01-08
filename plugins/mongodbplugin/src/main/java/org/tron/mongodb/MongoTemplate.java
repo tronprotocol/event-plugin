@@ -22,9 +22,6 @@ public abstract class MongoTemplate {
     private MongoManager manager;
     private MongoCollection<Document> collection = null;
 
-    public MongoTemplate() {
-    }
-
     public MongoTemplate(MongoManager manager) {
         this.manager = manager;
     }

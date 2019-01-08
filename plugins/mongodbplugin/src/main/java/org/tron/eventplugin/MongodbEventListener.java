@@ -4,11 +4,6 @@ import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tron.common.logsfilter.IPluginEventListener;
-import org.tron.mongodb.MongoConfig;
-import org.tron.mongodb.MongoManager;
-import org.tron.mongodb.MongoTemplate;
-
-import java.util.Map;
 import java.util.Objects;
 
 @Extension
