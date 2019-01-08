@@ -1,4 +1,5 @@
 package org.tron.eventplugin;
+import org.pf4j.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
@@ -45,8 +46,8 @@ public class MongodbSenderImpl{
         return instance;
     }
 
-    public void setServerAddress(String address){
-        this.serverAddress = address;
+    public void setServerAddress(final String address){
+        initMongoConfig(address);
     }
 
     public void init(){
@@ -57,24 +58,46 @@ public class MongodbSenderImpl{
 
         triggerProcessThread = new Thread(triggerProcessLoop);
         triggerProcessThread.start();
+
+        mongoTemplateMap = new HashMap<>();
+
         loaded = true;
-
-        initMongoConfig();
-
     }
 
-    private void initMongoConfig(){
-        mongoManager = new MongoManager();
-        mongoTemplateMap = new HashMap<>();
+    private void initMongoConfig(String serverAddress){
+        if (StringUtils.isNullOrEmpty(serverAddress)){
+            return;
+        }
+
+        String[] params = serverAddress.split(":");
+        if (params.length != 2){
+            return;
+        }
+
+        String hostName = "";
+        int port = -1;
+
+        try{
+            hostName = params[0];
+            port = Integer.valueOf(params[1]);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return;
+        }
 
         MongoConfig config = new MongoConfig();
         config.setDbName("eventlog");
-        config.setHost("127.0.0.1");
-        config.setPort(27017);
+        config.setHost(hostName);
+        config.setPort(port);
+
         config.setUsername("tron");
         config.setPassword("123456");
 
-        mongoManager.initConfig(config);
+        if (Objects.isNull(mongoManager)){
+            mongoManager = new MongoManager();
+            mongoManager.initConfig(config);
+        }
     }
 
     private MongoTemplate createMongoTemplate(final String collectionName){
@@ -138,6 +161,7 @@ public class MongodbSenderImpl{
         MongoTemplate template = mongoTemplateMap.get(blockTopic);
         if (Objects.nonNull(template)){
             template.addEntity((String)data);
+            System.out.println("handleBlockEvent " + data);
         }
     }
 

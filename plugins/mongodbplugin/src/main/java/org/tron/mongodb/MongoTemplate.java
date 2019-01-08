@@ -37,7 +37,9 @@ public abstract class MongoTemplate {
 
     public void addEntity(String entity) {
         MongoCollection<Document> collection = getCollection();
-        collection.insertOne(Converter.jsonStringToDocument(entity));
+        if (Objects.nonNull(collection)){
+            collection.insertOne(Converter.jsonStringToDocument(entity));
+        }
     }
 
     public void addList(List<Document> documents) {
@@ -167,7 +169,7 @@ public abstract class MongoTemplate {
     }
 
     private MongoCollection<Document> getCollection() {
-        if (Objects.isNull(manager)){
+        if (Objects.isNull(manager) || Objects.isNull(manager.getDb())){
             return null;
         }
 

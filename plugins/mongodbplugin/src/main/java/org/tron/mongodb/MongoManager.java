@@ -6,9 +6,6 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import org.pf4j.util.StringUtils;
-import org.tron.common.logsfilter.trigger.BlockLogTrigger;
-import org.tron.eventplugin.Constant;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

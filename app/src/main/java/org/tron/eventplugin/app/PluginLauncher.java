@@ -57,7 +57,7 @@ public class PluginLauncher {
         if (Objects.isNull(eventListeners)) return;
 
         eventListeners.forEach(listener -> {
-            listener.setServerAddress("127.0.0.1:9092");
+            listener.setServerAddress("127.0.0.1:27017");
         });
 
         eventListeners.forEach(listener -> {
