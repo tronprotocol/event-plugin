@@ -34,7 +34,7 @@ public class PluginLauncher {
     private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
     public static void main(String[] args) {
-        String path = "/home/java-tron/plugin-kafka-1.0.0.zip";
+        String path = "/Users/tron/workplace/java-tronSubmit/java-tronUseSubmit/develop_event_subscribe/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
 
         File dir = new File(path);
         // create the plugin manager
@@ -57,7 +57,7 @@ public class PluginLauncher {
         if (Objects.isNull(eventListeners)) return;
 
         eventListeners.forEach(listener -> {
-            listener.setServerAddress("127.0.0.1:9092");
+            listener.setServerAddress("127.0.0.1:27017");
         });
 
         eventListeners.forEach(listener -> {
