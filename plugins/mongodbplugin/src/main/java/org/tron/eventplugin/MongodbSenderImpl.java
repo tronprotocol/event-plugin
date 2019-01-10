@@ -1,5 +1,8 @@
 package org.tron.eventplugin;
 import org.pf4j.util.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -9,8 +12,6 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
@@ -19,11 +20,8 @@ public class MongodbSenderImpl{
     private static MongodbSenderImpl instance = null;
     private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
     ExecutorService service = Executors.newFixedThreadPool(8);
-    List<ListenableFuture<?>> futures = new ArrayList<>();
 
-    private String serverAddress = "";
     private boolean loaded = false;
-
     private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
 
     private String blockTopic = "";
@@ -37,8 +35,7 @@ public class MongodbSenderImpl{
     private MongoManager mongoManager;
     private Map<String, MongoTemplate> mongoTemplateMap;
 
-    private ObjectMapper mapper = new ObjectMapper();
-
+    private MongoConfig mongoConfig;
 
     public static MongodbSenderImpl getInstance(){
         if (Objects.isNull(instance)) {
@@ -52,8 +49,41 @@ public class MongodbSenderImpl{
         return instance;
     }
 
-    public void setServerAddress(final String address){
-        initMongoConfig(address);
+    public void setServerAddress(final String serverAddress){
+        if (StringUtils.isNullOrEmpty(serverAddress)){
+            return;
+        }
+
+        String[] params = serverAddress.split(":");
+        if (params.length != 2){
+            return;
+        }
+
+        String mongoHostName = "";
+        int mongoPort = -1;
+
+        try{
+            mongoHostName = params[0];
+            mongoPort = Integer.valueOf(params[1]);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return;
+        }
+
+        if (Objects.isNull(mongoConfig)){
+            mongoConfig = new MongoConfig();
+        }
+
+        mongoConfig.setHost(mongoHostName);
+        mongoConfig.setPort(mongoPort);
+
+        loadMongoConfig();
+
+        if (Objects.isNull(mongoManager)){
+            mongoManager = new MongoManager();
+            mongoManager.initConfig(mongoConfig);
+        }
     }
 
     public void init(){
@@ -66,44 +96,44 @@ public class MongodbSenderImpl{
         triggerProcessThread.start();
 
         mongoTemplateMap = new HashMap<>();
-
         loaded = true;
     }
 
-    private void initMongoConfig(String serverAddress){
-        if (StringUtils.isNullOrEmpty(serverAddress)){
+    private void loadMongoConfig(){
+
+        if (Objects.isNull(mongoConfig)){
             return;
         }
 
-        String[] params = serverAddress.split(":");
-        if (params.length != 2){
-            return;
-        }
+        Properties properties = new Properties();
 
-        String hostName = "";
-        int port = -1;
+        try {
+            InputStream input = getClass().getClassLoader().getResourceAsStream("mongodb.properties");
+            if (Objects.isNull(input)){
+                return;
+            }
+            properties.load(input);
 
-        try{
-            hostName = params[0];
-            port = Integer.valueOf(params[1]);
-        }
-        catch (Exception e){
+            String dbName = properties.getProperty("mongo.dbname");
+            String userName = properties.getProperty("mongo.username");
+            String password = properties.getProperty("mongo.password");
+
+            int connectionsPerHost = Integer.parseInt(properties.getProperty("mongo.connectionsPerHost"));
+            int threadsAllowedToBlockForConnectionMultiplie = Integer.parseInt(
+                    properties.getProperty("mongo.threadsAllowedToBlockForConnectionMultiplier"));
+
+            mongoConfig.setDbName(dbName);
+            mongoConfig.setUsername(userName);
+            mongoConfig.setPassword(password);
+
+            mongoConfig.setConnectionsPerHost(connectionsPerHost);
+            mongoConfig.setThreadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplie);
+        } catch (IOException e) {
             e.printStackTrace();
-            return;
+        } catch (Exception e){
+            e.printStackTrace();
         }
 
-        MongoConfig config = new MongoConfig();
-        config.setDbName("eventlog");
-        config.setHost(hostName);
-        config.setPort(port);
-
-        config.setUsername("tron");
-        config.setPassword("123456");
-
-        if (Objects.isNull(mongoManager)){
-            mongoManager = new MongoManager();
-            mongoManager.initConfig(config);
-        }
     }
 
     private MongoTemplate createMongoTemplate(final String collectionName){
