@@ -14,10 +14,7 @@ dependencies {
   compileOnly ("org.projectlombok:lombok:1.16.18") {
     exclude group: "org.slf4j"
   }
-
-  compile ("org.springframework.data:spring-data-mongodb:2.0.0.RELEASE") {
-    exclude group: "org.slf4j"
-  }
+  
   compile ("org.mongodb:mongo-java-driver:3.6.3"){
     exclude group: "org.slf4j"
   }
