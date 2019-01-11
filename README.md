@@ -132,24 +132,6 @@ kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractevent
  java -jar FullNode.jar -p privatekey -c config.conf --es 
 ```
 
-#### Set event plugin config via http
-```
-url: http://localhost:8090/wallet/setEventPluginConfig
-parameters: TriggerInfo list, which are serialized in json format
-
-message TriggerInfo{
-    string triggerName = 1;
-    bool enable = 2;
-    string topic = 3;
-}
-
-```
-
-### Set event plugin config via grpc
-```
-Wallet-cli:setEventPluginConfig
-command: setEventPluginConfig  block|true transaction|false
-```
 
 ### Event filter
 which is defined in config.conf, path: event.subscribe
@@ -166,26 +148,6 @@ filter = {
        ]
     }
 ```
-#### Set event plugin filter via http
-```
-url: http://localhost:8090/wallet/seteventfilter
-parameters: EventFilter object, which is seralized in json format
-
-message EventFilter {
-    string fromBlock = 1;
-    string toBlock = 2;
-    repeated string contractAddress = 3;
-    repeated string contractTopic = 4;
-}
-
-```
-
-#### Set eventFilter via grpc
-```
-Wallet-cli: seteventfilter
-command: seteventfilter 100 1000 address1|address2 topic1|topic2
-if parameter is null, input *
-for example: seteventfilter * * * *, which means any contract log or event will be subscribed.
 ```
 
 ### Tron event subscribe model
