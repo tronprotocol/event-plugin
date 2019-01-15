@@ -1,76 +1,101 @@
 package org.tron.common.logsfilter.trigger;
+
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-public class TransactionLogTrigger extends Trigger{
+public class TransactionLogTrigger extends Trigger {
 
-    @Override
-    public void setTimeStamp(long ts) {
-        super.timeStamp = ts;
-    }
+  @Override
+  public void setTimeStamp(long ts) {
+    super.timeStamp = ts;
+  }
 
-    @Getter
-    @Setter
-    private String transactionId;
+  @Getter
+  @Setter
+  private String transactionId;
 
-    @Getter
-    @Setter
-    private String blockId;
+  @Getter
+  @Setter
+  private String blockHash;
 
-    @Getter
-    @Setter
-    private long blockNum = -1;
+  @Getter
+  @Setter
+  private long blockNumber = -1;
 
-    @Getter
-    @Setter
-    private long energyUsage;
+  @Getter
+  @Setter
+  private long energyUsage;
 
-    @Getter
-    @Setter
-    private long energyFee;
+  @Getter
+  @Setter
+  private long energyFee;
 
-    @Getter
-    @Setter
-    private long originEnergyUsage;
+  @Getter
+  @Setter
+  private long originEnergyUsage;
 
-    @Getter
-    @Setter
-    private long energyUsageTotal;
+  @Getter
+  @Setter
+  private long energyUsageTotal;
 
-    @Getter
-    @Setter
-    private long netUsage;
+  @Getter
+  @Setter
+  private long netUsage;
 
-    @Getter
-    @Setter
-    private  long netFee;
+  @Getter
+  @Setter
+  private long netFee;
 
-    public TransactionLogTrigger(){
-        setTriggerName(Trigger.TRANSACTION_TRIGGER_NAME);
-    }
-    @Override
-    public String toString(){
-        return new StringBuilder().append("triggerName: ")
-                .append(getTriggerName())
-                .append("timestamp: ")
-                .append(timeStamp)
-                .append(", transactionId: ")
-                .append(transactionId)
-                .append(", blockId: ")
-                .append(blockId)
-                .append(", blockNum: ")
-                .append(blockNum)
-                .append(", energyUsage: ")
-                .append(energyUsage)
-                .append(", energyFee: ")
-                .append(energyFee)
-                .append(", originEnergyUsage: ")
-                .append(originEnergyUsage)
-                .append(", energyUsageTotal: ")
-                .append(energyUsageTotal)
-                .append(", netUsage: ")
-                .append(netUsage)
-                .append(", netFee: ")
-                .append(netFee).toString();
-    }
+  //contract
+  @Getter
+  @Setter
+  private String result;
+
+  @Getter
+  @Setter
+  private String contractAddress;
+
+  @Getter
+  @Setter
+  private String contractType;
+
+  @Getter
+  @Setter
+  private long feeLimit;
+
+  @Getter
+  @Setter
+  private long contractCallValue;
+
+  @Getter
+  @Setter
+  private String contractResult;
+
+  // transfer contract
+  @Getter
+  @Setter
+  private String fromAddress;
+
+  @Getter
+  @Setter
+  private String toAddress;
+
+  @Getter
+  @Setter
+  private String assetName;
+
+  @Getter
+  @Setter
+  private long assetAmount;
+
+  //internal transaction
+  @Getter
+  @Setter
+  private List<InternalTransactionPojo> internalTrananctionList;
+
+  public TransactionLogTrigger() {
+    setTriggerName(Trigger.TRANSACTION_TRIGGER_NAME);
+  }
 }
