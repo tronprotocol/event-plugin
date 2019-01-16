@@ -35,6 +35,10 @@ public class MongodbSenderImpl{
     private MongoManager mongoManager;
     private Map<String, MongoTemplate> mongoTemplateMap;
 
+    private String dbName;
+    private String dbUserName;
+    private String dbPassword;
+
     private MongoConfig mongoConfig;
 
     public static MongodbSenderImpl getInstance(){
@@ -47,6 +51,23 @@ public class MongodbSenderImpl{
         }
 
         return instance;
+    }
+
+    public void setDBConfig(String dbConfig){
+        if (StringUtils.isNullOrEmpty(dbConfig)){
+            return;
+        }
+
+        String[] params = dbConfig.split("\\|");
+        if (params.length != 3){
+            return;
+        }
+
+        dbName = params[0];
+        dbUserName = params[1];
+        dbPassword = params[2];
+
+        loadMongoConfig();
     }
 
     public void setServerAddress(final String serverAddress){
@@ -77,13 +98,6 @@ public class MongodbSenderImpl{
 
         mongoConfig.setHost(mongoHostName);
         mongoConfig.setPort(mongoPort);
-
-        loadMongoConfig();
-
-        if (Objects.isNull(mongoManager)){
-            mongoManager = new MongoManager();
-            mongoManager.initConfig(mongoConfig);
-        }
     }
 
     public void init(){
@@ -92,16 +106,40 @@ public class MongodbSenderImpl{
             return;
         }
 
+        if (Objects.isNull(mongoManager)){
+            mongoManager = new MongoManager();
+            mongoManager.initConfig(mongoConfig);
+        }
+
+        mongoTemplateMap = new HashMap<>();
+        createCollections();
+
         triggerProcessThread = new Thread(triggerProcessLoop);
         triggerProcessThread.start();
 
-        mongoTemplateMap = new HashMap<>();
         loaded = true;
     }
 
-    private void loadMongoConfig(){
+    private void createCollections(){
+        mongoManager.createCollection(blockTopic);
+        createMongoTemplate(blockTopic);
 
+        mongoManager.createCollection(transactionTopic);
+        createMongoTemplate(transactionTopic);
+
+        mongoManager.createCollection(contractLogTopic);
+        createMongoTemplate(contractLogTopic);
+
+        mongoManager.createCollection(contractEventTopic);
+        createMongoTemplate(contractEventTopic);
+    }
+
+    private void loadMongoConfig(){
         if (Objects.isNull(mongoConfig)){
+            mongoConfig = new MongoConfig();
+        }
+
+        if (StringUtils.isNullOrEmpty(dbName)){
             return;
         }
 
@@ -114,18 +152,13 @@ public class MongodbSenderImpl{
             }
             properties.load(input);
 
-            String dbName = properties.getProperty("mongo.dbname");
-            String userName = properties.getProperty("mongo.username");
-            String password = properties.getProperty("mongo.password");
-
             int connectionsPerHost = Integer.parseInt(properties.getProperty("mongo.connectionsPerHost"));
             int threadsAllowedToBlockForConnectionMultiplie = Integer.parseInt(
                     properties.getProperty("mongo.threadsAllowedToBlockForConnectionMultiplier"));
 
             mongoConfig.setDbName(dbName);
-            mongoConfig.setUsername(userName);
-            mongoConfig.setPassword(password);
-
+            mongoConfig.setUsername(dbUserName);
+            mongoConfig.setPassword(dbPassword);
             mongoConfig.setConnectionsPerHost(connectionsPerHost);
             mongoConfig.setThreadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplie);
         } catch (IOException e) {
@@ -133,7 +166,6 @@ public class MongodbSenderImpl{
         } catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
     private MongoTemplate createMongoTemplate(final String collectionName){
@@ -177,9 +209,6 @@ public class MongodbSenderImpl{
         else {
             return;
         }
-
-        mongoManager.createCollection(topic);
-        createMongoTemplate(topic);
     }
 
     public void close() {
@@ -209,6 +238,7 @@ public class MongodbSenderImpl{
             return;
         }
 
+        System.out.println(data);
 
         MongoTemplate template = mongoTemplateMap.get(transactionTopic);
         if (Objects.nonNull(template)) {

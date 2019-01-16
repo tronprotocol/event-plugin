@@ -19,14 +19,22 @@ public class MongodbEventListener implements IPluginEventListener {
         }
 
         MongodbSenderImpl.getInstance().setServerAddress(address);
-
-        // MessageSenderImpl should never init until server address is set
-        MongodbSenderImpl.getInstance().init();
     }
 
     @Override
     public void setTopic(int eventType, String topic) {
         MongodbSenderImpl.getInstance().setTopic(eventType, topic);
+    }
+
+    @Override
+    public void setDBConfig(String dbConfig) {
+        MongodbSenderImpl.getInstance().setDBConfig(dbConfig);
+    }
+
+    @Override
+    public void start() {
+        // MessageSenderImpl should never init until server address is set
+        MongodbSenderImpl.getInstance().init();
     }
 
     @Override

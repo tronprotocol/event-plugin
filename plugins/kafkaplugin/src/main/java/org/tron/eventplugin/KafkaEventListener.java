@@ -19,14 +19,22 @@ public class KafkaEventListener implements IPluginEventListener {
         }
 
         MessageSenderImpl.getInstance().setServerAddress(address);
-
-        // MessageSenderImpl should never init until server address is set
-        MessageSenderImpl.getInstance().init();
     }
 
     @Override
     public void setTopic(int eventType, String topic) {
         MessageSenderImpl.getInstance().setTopic(eventType, topic);
+    }
+
+    @Override
+    public void setDBConfig(String dbConfig) {
+        // empty implementation
+    }
+
+    @Override
+    public void start() {
+        // MessageSenderImpl should never init until server address is set
+        MessageSenderImpl.getInstance().init();
     }
 
     @Override

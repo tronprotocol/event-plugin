@@ -30,6 +30,11 @@ public class MongoManager {
         String username = config.getUsername();
         String password = config.getPassword();
         String databaseName = config.getDbName();
+
+        if (StringUtils.isNullOrEmpty(databaseName)){
+            return;
+        }
+
         MongoCredential credential = MongoCredential.createScramSha1Credential(username, databaseName,
                 password.toCharArray());
         List<MongoCredential> credentials = new ArrayList<MongoCredential>();

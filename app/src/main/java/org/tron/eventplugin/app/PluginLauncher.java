@@ -34,7 +34,7 @@ public class PluginLauncher {
     private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
     public static void main(String[] args) {
-        String path = "/Users/tron/workplace/java-tronSubmit/java-tronUseSubmit/develop_event_subscribe/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
+        String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
 
         File dir = new File(path);
         // create the plugin manager
@@ -61,14 +61,22 @@ public class PluginLauncher {
         });
 
         eventListeners.forEach(listener -> {
+            listener.setDBConfig("eventlog|tron|123456");
+        });
+
+        eventListeners.forEach(listener -> {
             listener.setTopic(Trigger.BLOCK_TRIGGER, "block");
             listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
             listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
             listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
         });
 
+        eventListeners.forEach(listener -> {
+            listener.start();
+        });
+
         ObjectMapper objectMapper = new ObjectMapper();
-        for (int index = 0; index < 666; ++index){
+        for (int index = 0; index < 1000; ++index){
             BlockLogTrigger trigger = new BlockLogTrigger();
             trigger.setBlockNumber(index);
             trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");
