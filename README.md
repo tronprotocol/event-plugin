@@ -148,9 +148,3 @@ filter = {
        ]
     }
 ```
-```
-
-### Tron event subscribe model
-```
-* Please refer to https://github.com/tronprotocol/TIPs/issues/12
-```
