@@ -5,7 +5,7 @@ This is an implementation of Tron eventsubscribe model.
 * **api** module defines IPluginEventListener, a protocol between Java-tron and event plugin. 
 * **app** module is an example for loading plugin, developers could use it for debugging.
 * **kafkaplugin** module is the implementation for kafka, it implements IPluginEventListener, it receives events subscribed from Java-tron and relay events to kafka server. 
-
+* **mongodbplugin** mongodbplugin module is the implementation for mongodb. 
 ### Setup/Build
 
 1. Clone the repo
