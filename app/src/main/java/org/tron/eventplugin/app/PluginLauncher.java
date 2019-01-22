@@ -24,6 +24,7 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import org.tron.common.logsfilter.IPluginEventListener;
 import org.tron.common.logsfilter.trigger.BlockLogTrigger;
+import org.tron.common.logsfilter.trigger.ContractEventTrigger;
 import org.tron.common.logsfilter.trigger.Trigger;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public class PluginLauncher {
     private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
     public static void main(String[] args) {
-        String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
+        String path = "/Users/tron/workplace/java-tronSubmit/java-tronUseSubmit/develop_event_subscribe/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip"; // absolute path of plugin
 
         File dir = new File(path);
         // create the plugin manager
@@ -57,7 +58,7 @@ public class PluginLauncher {
         if (Objects.isNull(eventListeners)) return;
 
         eventListeners.forEach(listener -> {
-            listener.setServerAddress("127.0.0.1:27017");
+            listener.setServerAddress("47.90.245.68:27017");
         });
 
         eventListeners.forEach(listener -> {
@@ -77,15 +78,12 @@ public class PluginLauncher {
 
         ObjectMapper objectMapper = new ObjectMapper();
         for (int index = 0; index < 1000; ++index){
-            BlockLogTrigger trigger = new BlockLogTrigger();
-            trigger.setBlockNumber(index);
-            trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");
-            trigger.setTimeStamp(System.currentTimeMillis());
-            trigger.setTransactionSize(100);
-
+            ContractEventTrigger trigger = new ContractEventTrigger();
+            trigger.setRemoved(true);
+            trigger.setTriggerName();
             eventListeners.forEach(listener -> {
                 try {
-                    listener.handleBlockEvent(objectMapper.writeValueAsString(trigger));
+                    listener.handleContractEventTrigger(objectMapper.writeValueAsString(trigger));
                 } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
                     e.printStackTrace();
                 }

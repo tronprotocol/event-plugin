@@ -1,4 +1,5 @@
 package org.tron.eventplugin;
+import com.alibaba.fastjson.JSONObject;
 import org.pf4j.util.StringUtils;
 
 import java.io.IOException;
@@ -238,8 +239,6 @@ public class MongodbSenderImpl{
             return;
         }
 
-        System.out.println(data);
-
         MongoTemplate template = mongoTemplateMap.get(transactionTopic);
         if (Objects.nonNull(template)) {
             service.execute(new Runnable() {
@@ -277,7 +276,20 @@ public class MongodbSenderImpl{
             service.execute(new Runnable() {
                 @Override
                 public void run() {
-                    template.addEntity((String)data);
+                    String dataStr = (String)data;
+                    if (dataStr.contains("\"removed\":true")) {
+                        try {
+                            JSONObject jsStr = JSONObject.parseObject(dataStr);
+                            String uniqueId = jsStr.getString("uniqueId");
+                            if (uniqueId != null) {
+                                template.delete("uniqueId", uniqueId);
+                            }
+                        } catch (Exception ex) {
+                            log.error("unknown exception happened in parse object ", ex);
+                        }
+                    } else {
+                        template.addEntity(dataStr);
+                    }
                 }
             });
         }
