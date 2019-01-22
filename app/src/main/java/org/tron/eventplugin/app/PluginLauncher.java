@@ -39,11 +39,11 @@ public class PluginLauncher {
         File dir = new File(path);
         // create the plugin manager
         final PluginManager pluginManager = new DefaultPluginManager(dir.toPath()) {
-          @Override
-          protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
-            return new CompoundPluginDescriptorFinder()
-                .add(new ManifestPluginDescriptorFinder());
-          }
+            @Override
+            protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
+                return new CompoundPluginDescriptorFinder()
+                    .add(new ManifestPluginDescriptorFinder());
+            }
         };
 
         File file = new File(path);

@@ -70,9 +70,9 @@ public abstract class MongoTemplate {
         return result;
     }
 
-    public long delete(String whereColumn, Object whereValue) {
+    public long delete(String whereColumn, String whereValue) {
         MongoCollection<Document> collection = getCollection();
-        DeleteResult result = collection.deleteMany(Filters.eq(whereColumn, whereValue));
+        DeleteResult result = collection.deleteOne(Filters.eq(whereColumn, whereValue));
         return result.getDeletedCount();
     }
 
