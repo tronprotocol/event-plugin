@@ -18,13 +18,14 @@ This is an implementation of Tron eventsubscribe model.
 ### Edit **config.conf** of Java-tron， add the following fileds:
 ```
 event.subscribe = {
-    path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-kafka-1.0.0.zip"
-    server = "127.0.0.1:9092"
+    path = "" // absolute path of plugin
+    server = "" // target server address to receive event triggers
+    dbconfig="" // dbname|username|password
     topics = [
         {
-          triggerName = "block"
+          triggerName = "block" // block trigger, the value can't be modified
           enable = false
-          topic = "block"
+          topic = "block" // plugin topic, the value could be modified
         },
         {
           triggerName = "transaction"
@@ -42,15 +43,30 @@ event.subscribe = {
           topic = "contractlog"
         }
     ]
+
+    filter = {
+       fromblock = "" // the value could be "", "earliest" or a specified block number as the beginning of the queried range
+       toblock = "" // the value could be "", "latest" or a specified block number as end of the queried range
+       contractAddress = [
+           "" // contract address you want to subscribe, if it's set to "", you will receive contract logs/events with any contract address.
+       ]
+
+       contractTopic = [
+           "" // contract topic you want to subscribe, if it's set to "", you will receive contract logs/events with any contract topic.
+       ]
+    }
 }
+
 
 ```
  * **path**: is the absolute path of "plugin-kafka-1.0.0.zip"
  * **server**: Kafka server address
  * **topics**: each event type maps to one Kafka topic, we support four event types subscribing, block, transaction, contractlog and contractevent.
+ * **dbconfig**: db configuration information for mongodb, if using kafka, delete this one; if using Mongodb, add like that dbname|username|password
  * **triggerName**: the trigger type, the value can't be modified.
  * **enable**: plugin can receive nothing if the value is false.
  * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running  
+ * **filter**: filter condition for process trigger.
  **note**: if the server is not 127.0.0.1, pls set some properties in config/server.properties file  
            remove comment and set listeners=PLAINTEXT://:9092  
            remove comment and set advertised.listeners to PLAINTEXT://host_ip:9092 
