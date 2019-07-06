@@ -1,4 +1,7 @@
 package org.tron.eventplugin;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import java.io.File;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +97,20 @@ public class MessageSenderImpl{
         props.put("bootstrap.servers", this.serverAddress);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
+        String defaultConfig = "kafka.config";
+        File configFile = new File(defaultConfig);
+        if(configFile.exists()) {
+            Config config = ConfigFactory.load(defaultConfig);
+            if (config.hasPath("authorization.user") && config.hasPath("authorization.passwd")) {
+                String user = config.getString("authorization.user");
+                String passwd = config.getString("authorization.passwd");
+                props.put("security.protocol", "SASL_PLAINTEXT");
+                props.put("sasl.mechanism", "SCRAM-SHA-512");
+                props.put("sasl.jaas.config",
+                    "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
+                        user + "\" password=\"" + passwd + "\"");
+            }
+        }
         producer = new KafkaProducer<String, String>(props);
 
         producerMap.put(eventType, producer);
