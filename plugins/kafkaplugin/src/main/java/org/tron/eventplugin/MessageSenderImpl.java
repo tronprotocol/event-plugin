@@ -97,7 +97,7 @@ public class MessageSenderImpl{
         props.put("bootstrap.servers", this.serverAddress);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        String defaultConfig = "kafka.config";
+        String defaultConfig = "kafka.conf";
         File configFile = new File(defaultConfig);
         if(configFile.exists()) {
             Config config = ConfigFactory.load(defaultConfig);
