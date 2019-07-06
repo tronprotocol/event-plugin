@@ -99,6 +99,7 @@ public class MessageSenderImpl{
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         String defaultConfig = "kafka.conf";
         File configFile = new File(defaultConfig);
+        log.error("file path: {}", configFile.getAbsolutePath());
         log.error("after configFile");
         if(configFile.exists()) {
             log.error("in configFile");
