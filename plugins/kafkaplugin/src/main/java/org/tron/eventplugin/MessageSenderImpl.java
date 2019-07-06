@@ -99,7 +99,9 @@ public class MessageSenderImpl{
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         String defaultConfig = "kafka.conf";
         File configFile = new File(defaultConfig);
+        log.error("after configFile");
         if(configFile.exists()) {
+            log.error("in configFile");
             Config config = ConfigFactory.load(defaultConfig);
             if (config.hasPath("authorization.user") && config.hasPath("authorization.passwd")) {
                 String user = config.getString("authorization.user");
@@ -109,8 +111,12 @@ public class MessageSenderImpl{
                 props.put("sasl.jaas.config",
                     "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
                         user + "\" password=\"" + passwd + "\";");
+
+                log.error("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
+                    user + "\" password=\"" + passwd + "\";");
             }
         }
+        log.error("after configFile");
         producer = new KafkaProducer<String, String>(props);
 
         producerMap.put(eventType, producer);
