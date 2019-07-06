@@ -108,7 +108,7 @@ public class MessageSenderImpl{
                 props.put("sasl.mechanism", "SCRAM-SHA-512");
                 props.put("sasl.jaas.config",
                     "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
-                        user + "\" password=\"" + passwd + "\"");
+                        user + "\" password=\"" + passwd + "\";");
             }
         }
         producer = new KafkaProducer<String, String>(props);
