@@ -30,6 +30,8 @@ public class MongodbSenderImpl{
     private String contractEventTopic = "";
     private String contractLogTopic = "";
 
+    private String revokingItems = "";
+
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
 
@@ -133,6 +135,9 @@ public class MongodbSenderImpl{
 
         mongoManager.createCollection(contractEventTopic);
         createMongoTemplate(contractEventTopic);
+
+        mongoManager.createCollection(revokingItems);
+        createMongoTemplate(revokingItems);
     }
 
     private void loadMongoConfig(){
@@ -277,12 +282,18 @@ public class MongodbSenderImpl{
                 @Override
                 public void run() {
                     String dataStr = (String)data;
+                    // Block revoking events:
                     if (dataStr.contains("\"removed\":true")) {
                         try {
                             JSONObject jsStr = JSONObject.parseObject(dataStr);
                             String uniqueId = jsStr.getString("uniqueId");
                             if (uniqueId != null) {
                                 template.delete("uniqueId", uniqueId);
+                            }
+
+                            MongoTemplate revokingTemplate = mongoTemplateMap.get(revokingItems);
+                            if (Objects.nonNull(revokingTemplate)){
+                                revokingTemplate.addEntity(dataStr);
                             }
                         } catch (Exception ex) {
                             log.error("unknown exception happened in parse object ", ex);
