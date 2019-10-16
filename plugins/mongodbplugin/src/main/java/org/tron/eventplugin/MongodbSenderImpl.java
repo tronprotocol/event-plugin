@@ -1,21 +1,20 @@
 package org.tron.eventplugin;
+
 import com.alibaba.fastjson.JSONObject;
 import org.pf4j.util.StringUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.*;
 
 public class MongodbSenderImpl{
     private static MongodbSenderImpl instance = null;
