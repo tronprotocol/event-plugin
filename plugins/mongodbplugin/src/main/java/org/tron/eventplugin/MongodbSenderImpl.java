@@ -29,7 +29,8 @@ public class MongodbSenderImpl{
     private String contractEventTopic = "";
     private String contractLogTopic = "";
 
-    private String revokingItems = "";
+    private String revokedTransaction = "revokedtransaction";
+    private String revokedEvent = "revokedevent";
 
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
@@ -135,8 +136,11 @@ public class MongodbSenderImpl{
         mongoManager.createCollection(contractEventTopic);
         createMongoTemplate(contractEventTopic);
 
-        mongoManager.createCollection(revokingItems);
-        createMongoTemplate(revokingItems);
+        mongoManager.createCollection(revokedEvent);
+        createMongoTemplate(revokedEvent);
+
+        mongoManager.createCollection(revokedTransaction);
+        createMongoTemplate(revokedTransaction);
     }
 
     private void loadMongoConfig(){
@@ -248,7 +252,26 @@ public class MongodbSenderImpl{
             service.execute(new Runnable() {
                 @Override
                 public void run() {
-                    template.addEntity((String)data);
+                  String dataStr = (String)data;
+                  // Block revoking events:
+                  if (dataStr.contains("\"removed\":true")) {
+                    try {
+                      JSONObject jsStr = JSONObject.parseObject(dataStr);
+                      String uniqueId = jsStr.getString("uniqueId");
+                      if (uniqueId != null) {
+                        template.delete("uniqueId", uniqueId);
+                      }
+
+                      MongoTemplate revokingTemplate = mongoTemplateMap.get(revokedTransaction);
+                      if (Objects.nonNull(revokingTemplate)){
+                        revokingTemplate.addEntity(dataStr);
+                      }
+                    } catch (Exception ex) {
+                      log.error("unknown exception happened in parse object ", ex);
+                    }
+                  } else {
+                    template.addEntity(dataStr);
+                  }
                 }
             });
         }
@@ -290,7 +313,7 @@ public class MongodbSenderImpl{
                                 template.delete("uniqueId", uniqueId);
                             }
 
-                            MongoTemplate revokingTemplate = mongoTemplateMap.get(revokingItems);
+                            MongoTemplate revokingTemplate = mongoTemplateMap.get(revokedEvent);
                             if (Objects.nonNull(revokingTemplate)){
                                 revokingTemplate.addEntity(dataStr);
                             }

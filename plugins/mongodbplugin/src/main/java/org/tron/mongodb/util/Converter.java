@@ -1,10 +1,9 @@
 package org.tron.mongodb.util;
 
-import java.io.Serializable;
-
+import com.alibaba.fastjson.JSON;
 import org.bson.Document;
 
-import com.alibaba.fastjson.JSON;
+import java.io.Serializable;
 
 public class Converter {
 

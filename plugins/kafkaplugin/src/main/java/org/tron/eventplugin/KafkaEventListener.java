@@ -4,6 +4,7 @@ import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tron.common.logsfilter.IPluginEventListener;
+
 import java.util.Objects;
 
 @Extension
