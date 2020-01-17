@@ -44,7 +44,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -80,6 +80,6 @@ public class MongodbEventListener implements IPluginEventListener {
             return;
         }
 
-        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 }
