@@ -57,6 +57,15 @@ public class KafkaEventListener implements IPluginEventListener {
     }
 
     @Override
+    public void handleSolidityTrigger(Object data) {
+        if (Objects.isNull(data)){
+            return;
+        }
+
+        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+    }
+
+    @Override
     public void handleContractLogTrigger(Object data) {
         if (Objects.isNull(data)){
             return;

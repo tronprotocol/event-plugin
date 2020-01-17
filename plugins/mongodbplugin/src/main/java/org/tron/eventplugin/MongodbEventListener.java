@@ -73,4 +73,13 @@ public class MongodbEventListener implements IPluginEventListener {
 
         MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
     }
+
+    @Override
+    public void handleSolidityTrigger(Object data) {
+        if (Objects.isNull(data)){
+            return;
+        }
+
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+    }
 }
