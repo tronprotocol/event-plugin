@@ -134,6 +134,9 @@ public class MongodbSenderImpl{
 
         mongoManager.createCollection(contractEventTopic);
         createMongoTemplate(contractEventTopic);
+
+        mongoManager.createCollection(solidityTopic);
+        createMongoTemplate(solidityTopic);
     }
 
     private void loadMongoConfig(){
