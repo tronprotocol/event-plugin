@@ -29,6 +29,7 @@ public class MongodbSenderImpl{
     private String transactionTopic = "";
     private String contractEventTopic = "";
     private String contractLogTopic = "";
+    private String solidityTopic = "";
 
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
@@ -133,6 +134,9 @@ public class MongodbSenderImpl{
 
         mongoManager.createCollection(contractEventTopic);
         createMongoTemplate(contractEventTopic);
+
+        mongoManager.createCollection(solidityTopic);
+        createMongoTemplate(solidityTopic);
     }
 
     private void loadMongoConfig(){
@@ -206,6 +210,8 @@ public class MongodbSenderImpl{
         }
         else if (triggerType == Constant.CONTRACTLOG_TRIGGER){
             contractLogTopic = topic;
+        } else if (triggerType == Constant.SOLIDITY_TRIGGER) {
+            solidityTopic = topic;
         }
         else {
             return;
@@ -240,6 +246,22 @@ public class MongodbSenderImpl{
         }
 
         MongoTemplate template = mongoTemplateMap.get(transactionTopic);
+        if (Objects.nonNull(template)) {
+            service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    template.addEntity((String)data);
+                }
+            });
+        }
+    }
+
+    public void handleSolidityTrigger(Object data) {
+        if (Objects.isNull(data) || Objects.isNull(solidityTopic)){
+            return;
+        }
+
+        MongoTemplate template = mongoTemplateMap.get(solidityTopic);
         if (Objects.nonNull(template)) {
             service.execute(new Runnable() {
                 @Override
@@ -316,6 +338,8 @@ public class MongodbSenderImpl{
                         }
                         else if (triggerData.contains(Constant.CONTRACTEVENT_TRIGGER_NAME)){
                             handleContractEventTrigger(triggerData);
+                        } else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
+                            handleSolidityTrigger(triggerData);
                         }
                     } catch (InterruptedException ex) {
                         log.info(ex.getMessage());

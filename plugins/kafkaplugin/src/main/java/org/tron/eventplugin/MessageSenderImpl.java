@@ -27,6 +27,7 @@ public class MessageSenderImpl{
     private String transactionTopic = "";
     private String contractEventTopic = "";
     private String contractLogTopic = "";
+    private String solidityTopic = "";
 
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
@@ -77,6 +78,9 @@ public class MessageSenderImpl{
         }
         else if (triggerType == Constant.CONTRACTLOG_TRIGGER){
             contractLogTopic = topic;
+        }
+        else if (triggerType == Constant.SOLIDITY_TRIGGER) {
+            solidityTopic = topic;
         }
     }
 
@@ -202,6 +206,13 @@ public class MessageSenderImpl{
         MessageSenderImpl.getInstance().sendKafkaRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, data);
     }
 
+    public void handleSolidityTrigger(Object data) {
+        if (Objects.isNull(data) || Objects.isNull(solidityTopic)){
+            return;
+        }
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_TRIGGER, contractEventTopic, data);
+    }
+
     private Runnable triggerProcessLoop =
             () -> {
                 while (isRunTriggerProcessThread) {
@@ -223,6 +234,9 @@ public class MessageSenderImpl{
                         }
                         else if (triggerData.contains(Constant.CONTRACTEVENT_TRIGGER_NAME)){
                             handleContractEventTrigger(triggerData);
+                        }
+                        else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
+                            handleSolidityTrigger(triggerData);
                         }
                     } catch (InterruptedException ex) {
                         log.info(ex.getMessage());

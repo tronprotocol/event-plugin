@@ -44,7 +44,7 @@ public class KafkaEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -53,7 +53,16 @@ public class KafkaEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    }
+
+    @Override
+    public void handleSolidityTrigger(Object data) {
+        if (Objects.isNull(data)){
+            return;
+        }
+
+        MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -62,7 +71,7 @@ public class KafkaEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 
     @Override
@@ -71,6 +80,6 @@ public class KafkaEventListener implements IPluginEventListener {
             return;
         }
 
-        MessageSenderImpl.getInstance().getTriggerQueue().offer((String)data);
+        MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
 }
