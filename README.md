@@ -41,6 +41,21 @@ event.subscribe = {
           triggerName = "contractlog"
           enable = true
           topic = "contractlog"
+        },
+        {
+              triggerName = "solidity" // get latest solidity block number
+              enable = true            // the default value is true
+              topic = "solidity"
+        },
+        {
+           triggerName = "solidityevent" // get solidity event information, only used in kafka
+           enable = false
+           topic = "soliditytevent"
+        },
+        {
+            triggerName = "soliditylog" // get solidity log information, only used in kafka
+            enable = false
+            topic = "soliditylog"
         }
     ]
 
