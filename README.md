@@ -121,6 +121,9 @@ kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partit
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidity
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidityevent
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic soliditylog
 ```
 
 **On Linux**:
@@ -129,6 +132,9 @@ kafka-topics.sh  --create --zookeeper localhost:2181 --replication-factor 1 --pa
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidity
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidityevent
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic soliditylog
 ```
 
 #### Kafka consumer
@@ -139,6 +145,9 @@ kafka-console-consumer --bootstrap-server localhost:9092  --topic block
 kafka-console-consumer --bootstrap-server localhost:9092  --topic transaction
 kafka-console-consumer --bootstrap-server localhost:9092  --topic contractlog
 kafka-console-consumer --bootstrap-server localhost:9092  --topic contractevent
+kafka-console-consumer --bootstrap-server localhost:9092  --topic solidity
+kafka-console-consumer --bootstrap-server localhost:9092  --topic solidityevent
+kafka-console-consumer --bootstrap-server localhost:9092  --topic soliditylog
 ```
 
 **On Linux**:
@@ -147,6 +156,9 @@ kafka-console-consumer.sh --zookeeper localhost:2181 --topic block
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic transaction
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractlog
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractevent
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic solidity
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic solidityevent
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic soliditylog
 ```
 
 ### Load plugin in Java-tron
