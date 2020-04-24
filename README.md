@@ -43,6 +43,11 @@ event.subscribe = {
           topic = "contractlog"
         },
         {
+          triggerName = "solidity" // solidity block event trigger, the value can't be modified
+          enable = true            // the default value is true
+          topic = "solidity"
+        },
+        {
           triggerName = "solidityevent"
           enable = false
           topic = "solidityevent"
