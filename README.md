@@ -41,6 +41,16 @@ event.subscribe = {
           triggerName = "contractlog"
           enable = true
           topic = "contractlog"
+        },
+        {
+          triggerName = "solidityevent"
+          enable = false
+          topic = "solidityevent"
+        },
+        {
+          triggerName = "soliditylog"
+          enable = false
+          topic = "soliditylog"
         }
     ]
 
@@ -86,9 +96,6 @@ mv kafka_2.10-0.10.2.2 kafka
 
 add "export PATH=$PATH:/usr/local/kafka/bin" to end of /etc/profile
 source /etc/profile
-
-
-kafka-server-start.sh /usr/local/kafka/config/server.properties &
 
 ```
 **Note**: make sure the version of Kafka is the same as the version set in build.gradle of eventplugin project.(kafka_2.10-0.10.2.2 kafka)
