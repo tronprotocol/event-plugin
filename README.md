@@ -122,7 +122,8 @@ kafka-server-start.sh /usr/local/kafka/config/server.properties &
 
 **On Mac**:
 ```
-kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 - 
+artitions 1 --topic block
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
@@ -169,7 +170,7 @@ kafka-console-consumer.sh --zookeeper localhost:2181 --topic soliditylog
 ### Load plugin in Java-tron
 * add --es to command line, for example:
 ```
- java -jar FullNode.jar -p privatekey -c config.conf --es 
+ java -jar FullNode.jar -c config.conf --es 
 ```
 
 
