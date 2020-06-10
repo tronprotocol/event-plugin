@@ -121,7 +121,7 @@ public class MessageSenderImpl{
                 "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
                     user + "\" password=\"" + passwd + "\";");
 
-            log.error("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
+            log.info("org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" +
                 user + "\" password=\"" + passwd + "\";");
         }
 
