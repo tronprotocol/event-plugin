@@ -92,7 +92,7 @@ public class MessageSenderImpl{
         Thread currentThread = Thread.currentThread();
         ClassLoader savedClassLoader = currentThread.getContextClassLoader();
 
-        currentThread.setContextClassLoader(null);
+        currentThread.setContextClassLoader(savedClassLoader);
 
         Properties props = new Properties();
         props.put("acks", "all");
@@ -103,8 +103,8 @@ public class MessageSenderImpl{
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         String defaultConfig = "kafka.conf";
         File configFile = new File(defaultConfig);
-        log.error("file path: {}", configFile.getAbsolutePath());
-        log.error("before configFile");
+        log.info("file path: {}", configFile.getAbsolutePath());
+        log.info("before configFile");
         Config config = null;
 
         if (configFile.exists()) {
@@ -125,12 +125,10 @@ public class MessageSenderImpl{
                 user + "\" password=\"" + passwd + "\";");
         }
 
-        log.error("after configFile");
+        log.info("after configFile");
         producer = new KafkaProducer<String, String>(props);
 
         producerMap.put(eventType, producer);
-
-        currentThread.setContextClassLoader(savedClassLoader);
 
         return producer;
     }
