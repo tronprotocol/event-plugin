@@ -92,7 +92,7 @@ public class MessageSenderImpl{
         Thread currentThread = Thread.currentThread();
         ClassLoader savedClassLoader = currentThread.getContextClassLoader();
 
-        currentThread.setContextClassLoader(savedClassLoader);
+        currentThread.setContextClassLoader(null);
 
         Properties props = new Properties();
         props.put("acks", "all");
@@ -127,6 +127,8 @@ public class MessageSenderImpl{
 
         log.info("after configFile");
         producer = new KafkaProducer<String, String>(props);
+
+        currentThread.setContextClassLoader(savedClassLoader);
 
         producerMap.put(eventType, producer);
 
