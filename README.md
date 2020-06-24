@@ -75,7 +75,7 @@ event.subscribe = {
 
 ```
  * **path**: is the absolute path of "plugin-kafka-1.0.0.zip"
- * **server**: Kafka server address
+ * **server**: Kafka server address, the default port is 9092
  * **topics**: each event type maps to one Kafka topic, we support four event types subscribing, block, transaction, contractlog and contractevent.
  * **dbconfig**: db configuration information for mongodb, if using kafka, delete this one; if using Mongodb, add like that dbname|username|password
  * **triggerName**: the trigger type, the value can't be modified.
@@ -122,8 +122,7 @@ kafka-server-start.sh /usr/local/kafka/config/server.properties &
 
 **On Mac**:
 ```
-kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 - 
-artitions 1 --topic block
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
