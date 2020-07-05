@@ -41,6 +41,21 @@ event.subscribe = {
           triggerName = "contractlog"
           enable = true
           topic = "contractlog"
+        },
+        {
+          triggerName = "solidity" // solidity block event trigger, the value can't be modified
+          enable = true            // the default value is true
+          topic = "solidity"
+        },
+        {
+          triggerName = "solidityevent"
+          enable = false
+          topic = "solidityevent"
+        },
+        {
+          triggerName = "soliditylog"
+          enable = false
+          topic = "soliditylog"
         }
     ]
 
@@ -87,9 +102,6 @@ mv kafka_2.10-0.10.2.2 kafka
 add "export PATH=$PATH:/usr/local/kafka/bin" to end of /etc/profile
 source /etc/profile
 
-
-kafka-server-start.sh /usr/local/kafka/config/server.properties &
-
 ```
 **Note**: make sure the version of Kafka is the same as the version set in build.gradle of eventplugin project.(kafka_2.10-0.10.2.2 kafka)
 
@@ -114,14 +126,20 @@ kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partit
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidity
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidityevent
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic soliditylog
 ```
 
 **On Linux**:
 ```
-kafka-topics.sh  --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractlog
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic contractevent
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidity
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic solidityevent
+kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic soliditylog
 ```
 
 #### Kafka consumer
@@ -132,6 +150,9 @@ kafka-console-consumer --bootstrap-server localhost:9092  --topic block
 kafka-console-consumer --bootstrap-server localhost:9092  --topic transaction
 kafka-console-consumer --bootstrap-server localhost:9092  --topic contractlog
 kafka-console-consumer --bootstrap-server localhost:9092  --topic contractevent
+kafka-console-consumer --bootstrap-server localhost:9092  --topic solidity
+kafka-console-consumer --bootstrap-server localhost:9092  --topic solidityevent
+kafka-console-consumer --bootstrap-server localhost:9092  --topic soliditylog
 ```
 
 **On Linux**:
@@ -140,6 +161,9 @@ kafka-console-consumer.sh --zookeeper localhost:2181 --topic block
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic transaction
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractlog
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic contractevent
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic solidity
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic solidityevent
+kafka-console-consumer.sh --zookeeper localhost:2181 --topic soliditylog
 ```
 
 ### Load plugin in Java-tron

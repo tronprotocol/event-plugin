@@ -69,6 +69,10 @@ public class PluginLauncher {
             listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
             listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
             listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
+            listener.setTopic(Trigger.SOLIDITY_TRIGGER, "solidity");
+            listener.setTopic(Trigger.SOLIDITY_EVENT, "solidityevent");
+            listener.setTopic(Trigger.SOLIDITY_LOG, "soliditylog");
+
         });
 
         eventListeners.forEach(listener -> {

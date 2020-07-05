@@ -28,6 +28,9 @@ public class MessageSenderImpl{
     private String contractEventTopic = "";
     private String contractLogTopic = "";
     private String solidityTopic = "";
+    private String solidityLogTopic = "";
+    private String solidityEventTopic = "";
+
 
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
@@ -59,6 +62,9 @@ public class MessageSenderImpl{
         createProducer(Constant.TRANSACTION_TRIGGER);
         createProducer(Constant.CONTRACTLOG_TRIGGER);
         createProducer(Constant.CONTRACTEVENT_TRIGGER);
+        createProducer(Constant.SOLIDITY_TRIGGER);
+        createProducer(Constant.SOLIDITY_EVENT);
+        createProducer(Constant.SOLIDITY_LOG);
 
         triggerProcessThread = new Thread(triggerProcessLoop);
         triggerProcessThread.start();
@@ -66,24 +72,23 @@ public class MessageSenderImpl{
         loaded = true;
     }
 
-    public void setTopic(int triggerType, String topic){
-        if (triggerType == Constant.BLOCK_TRIGGER){
+    public void setTopic(int triggerType, String topic) {
+        if (triggerType == Constant.BLOCK_TRIGGER) {
             blockTopic = topic;
-        }
-        else if (triggerType == Constant.TRANSACTION_TRIGGER){
+        } else if (triggerType == Constant.TRANSACTION_TRIGGER) {
             transactionTopic = topic;
-        }
-        else if (triggerType == Constant.CONTRACTEVENT_TRIGGER){
+        } else if (triggerType == Constant.CONTRACTEVENT_TRIGGER) {
             contractEventTopic = topic;
-        }
-        else if (triggerType == Constant.CONTRACTLOG_TRIGGER){
+        } else if (triggerType == Constant.CONTRACTLOG_TRIGGER) {
             contractLogTopic = topic;
-        }
-        else if (triggerType == Constant.SOLIDITY_TRIGGER) {
+        } else if (triggerType == Constant.SOLIDITY_TRIGGER) {
             solidityTopic = topic;
+        } else if (triggerType == Constant.SOLIDITY_EVENT) {
+            solidityEventTopic = topic;
+        } else if (triggerType == Constant.SOLIDITY_LOG) {
+            solidityLogTopic = topic;
         }
     }
-
 
     private KafkaProducer createProducer(int eventType){
 
@@ -210,7 +215,19 @@ public class MessageSenderImpl{
         if (Objects.isNull(data) || Objects.isNull(solidityTopic)){
             return;
         }
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_TRIGGER, contractEventTopic, data);
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_TRIGGER, solidityTopic, data);
+    }
+    public void handleSolidityLogTrigger(Object data) {
+        if (Objects.isNull(data) || Objects.isNull(solidityLogTopic)){
+            return;
+        }
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_LOG, solidityLogTopic, data);
+    }
+    public void handleSolidityEventTrigger(Object data) {
+        if (Objects.isNull(data) || Objects.isNull(solidityEventTopic)){
+            return;
+        }
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_EVENT, solidityEventTopic, data);
     }
 
     private Runnable triggerProcessLoop =
@@ -237,6 +254,12 @@ public class MessageSenderImpl{
                         }
                         else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
                             handleSolidityTrigger(triggerData);
+                        }
+                        else if (triggerData.contains(Constant.SOLIDITYLOG_TRIGGER_NAME)) {
+                            handleSolidityLogTrigger(triggerData);
+                        }
+                        else if (triggerData.contains(Constant.SOLIDITYEVENT_TRIGGER_NAME)) {
+                            handleSolidityEventTrigger(triggerData);
                         }
                     } catch (InterruptedException ex) {
                         log.info(ex.getMessage());
