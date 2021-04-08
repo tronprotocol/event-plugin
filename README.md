@@ -15,12 +15,12 @@ This is an implementation of Tron eventsubscribe model.
 * This will produce one plugin zip, named `plugin-kafka-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
 
 
-### Edit **config.conf** of Java-tron， add the following fileds:
+### Edit **config.conf** of Java-tron, add the following fileds:
 ```
 event.subscribe = {
     path = "" // absolute path of plugin
     server = "" // target server address to receive event triggers
-    dbconfig="" // dbname|username|password
+    dbconfig = "" // dbname|username|password
     topics = [
         {
           triggerName = "block" // block trigger, the value can't be modified
