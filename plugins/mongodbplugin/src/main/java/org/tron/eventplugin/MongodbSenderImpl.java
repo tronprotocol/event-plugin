@@ -1,19 +1,20 @@
 package org.tron.eventplugin;
 
 import com.alibaba.fastjson.JSONObject;
-import org.pf4j.util.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.pf4j.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
@@ -126,25 +127,35 @@ public class MongodbSenderImpl {
   }
 
   private void createCollections() {
-    mongoManager.createCollection(blockTopic);
+
+    Map<String, Boolean> col2unique1 = new HashMap<String, Boolean>();
+    col2unique1.put("blockNumber", true);
+    mongoManager.createCollection(blockTopic, col2unique1);
     createMongoTemplate(blockTopic);
 
-    mongoManager.createCollection(transactionTopic);
+    Map<String, Boolean> col2unique2 = new HashMap<String, Boolean>();
+    col2unique2.put("transactionId", true);
+    mongoManager.createCollection(transactionTopic, col2unique2);
     createMongoTemplate(transactionTopic);
 
-    mongoManager.createCollection(contractLogTopic);
+    mongoManager.createCollection(contractLogTopic, null);
     createMongoTemplate(contractLogTopic);
 
-    mongoManager.createCollection(contractEventTopic);
+    mongoManager.createCollection(contractEventTopic, null);
     createMongoTemplate(contractEventTopic);
 
-    mongoManager.createCollection(solidityTopic);
+    Map<String, Boolean> col2unique3 = new HashMap<String, Boolean>();
+    col2unique3.put("latestSolidifiedBlockNumber", true);
+    mongoManager.createCollection(solidityTopic, col2unique3);
     createMongoTemplate(solidityTopic);
 
-    mongoManager.createCollection(solidityEventTopic);
+    mongoManager.createCollection(solidityEventTopic, null);
     createMongoTemplate(solidityEventTopic);
 
-    mongoManager.createCollection(solidityLogTopic);
+    Map<String, Boolean> col2unique4 = new HashMap<String, Boolean>();
+    col2unique4.put("uniqueId", true);
+    col2unique4.put("contractAddress", false);
+    mongoManager.createCollection(solidityLogTopic, col2unique4);
     createMongoTemplate(solidityLogTopic);
   }
 

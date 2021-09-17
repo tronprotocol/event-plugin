@@ -5,10 +5,13 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
-import org.pf4j.util.StringUtils;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import org.pf4j.util.StringUtils;
 
 public class MongoManager {
 
@@ -44,10 +47,17 @@ public class MongoManager {
         db = mongo.getDatabase(databaseName);
     }
 
-    public void createCollection(String collectionName) {
+    public void createCollection(String collectionName, Map<String, Boolean> col2unique) {
         if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
-            if (Objects.isNull(db.getCollection(collectionName))){
+            if (Objects.isNull(db.getCollection(collectionName))) {
                 db.createCollection(collectionName);
+                if (col2unique == null) {
+                  return;
+                }
+                for (String col : col2unique.keySet()) {
+                  db.getCollection(collectionName).createIndex(Indexes.ascending(col),
+                      new IndexOptions().unique(col2unique.get(col)));
+                }
             }
         }
     }
