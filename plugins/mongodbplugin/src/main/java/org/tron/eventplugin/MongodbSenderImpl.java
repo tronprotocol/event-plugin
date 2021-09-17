@@ -128,12 +128,12 @@ public class MongodbSenderImpl {
 
   private void createCollections() {
 
-    Map<String, Boolean> col2unique1 = new HashMap<String, Boolean>();
+    Map<String, Boolean> col2unique1 = new HashMap<>();
     col2unique1.put("blockNumber", true);
     mongoManager.createCollection(blockTopic, col2unique1);
     createMongoTemplate(blockTopic);
 
-    Map<String, Boolean> col2unique2 = new HashMap<String, Boolean>();
+    Map<String, Boolean> col2unique2 = new HashMap<>();
     col2unique2.put("transactionId", true);
     mongoManager.createCollection(transactionTopic, col2unique2);
     createMongoTemplate(transactionTopic);
@@ -144,7 +144,7 @@ public class MongodbSenderImpl {
     mongoManager.createCollection(contractEventTopic, null);
     createMongoTemplate(contractEventTopic);
 
-    Map<String, Boolean> col2unique3 = new HashMap<String, Boolean>();
+    Map<String, Boolean> col2unique3 = new HashMap<>();
     col2unique3.put("latestSolidifiedBlockNumber", true);
     mongoManager.createCollection(solidityTopic, col2unique3);
     createMongoTemplate(solidityTopic);
@@ -152,7 +152,7 @@ public class MongodbSenderImpl {
     mongoManager.createCollection(solidityEventTopic, null);
     createMongoTemplate(solidityEventTopic);
 
-    Map<String, Boolean> col2unique4 = new HashMap<String, Boolean>();
+    Map<String, Boolean> col2unique4 = new HashMap<>();
     col2unique4.put("uniqueId", true);
     col2unique4.put("contractAddress", false);
     mongoManager.createCollection(solidityLogTopic, col2unique4);
