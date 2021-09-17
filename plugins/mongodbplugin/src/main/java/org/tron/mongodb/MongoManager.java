@@ -56,7 +56,7 @@ public class MongoManager {
                 }
                 for (String col : col2unique.keySet()) {
                   db.getCollection(collectionName).createIndex(Indexes.ascending(col),
-                      new IndexOptions().unique(col2unique.get(col)));
+                      new IndexOptions().name(col).unique(col2unique.get(col)));
                 }
             }
         }
