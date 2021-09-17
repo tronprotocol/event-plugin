@@ -10,14 +10,10 @@ import com.mongodb.client.model.Indexes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.pf4j.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MongoManager {
 
-  private static final Logger log = LoggerFactory.getLogger(MongoManager.class);
   private MongoClient mongo;
   private MongoDatabase db;
 
@@ -54,15 +50,14 @@ public class MongoManager {
 
   public void createCollection(String collectionName, Map<String, Boolean> col2unique) {
     if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
-      log.info("prepare to create collection " + collectionName);
-      if (Objects.isNull(db.getCollection(collectionName))) {
-        log.info("create collection " + collectionName);
+      List<String> collectionList = new ArrayList<>();
+      db.listCollectionNames().into(collectionList);
+      if (!collectionList.contains(collectionName)) {
         db.createCollection(collectionName);
         if (col2unique == null) {
           return;
         }
         for (String col : col2unique.keySet()) {
-          log.info("create collection {} index {}", collectionName, col);
           db.getCollection(collectionName).createIndex(Indexes.ascending(col),
               new IndexOptions().name(col).unique(col2unique.get(col)));
         }
