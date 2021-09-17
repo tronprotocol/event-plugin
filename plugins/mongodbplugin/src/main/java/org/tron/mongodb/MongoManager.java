@@ -53,10 +53,10 @@ public class MongoManager {
   }
 
   public void createCollection(String collectionName, Map<String, Boolean> col2unique) {
-    log.info("prepare to create collection " + collectionName);
     if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
-      log.info("create collection " + collectionName);
+      log.info("prepare to create collection " + collectionName);
       if (Objects.isNull(db.getCollection(collectionName))) {
+        log.info("create collection " + collectionName);
         db.createCollection(collectionName);
         if (col2unique == null) {
           return;
