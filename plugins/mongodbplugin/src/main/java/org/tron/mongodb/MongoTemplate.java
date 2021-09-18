@@ -1,5 +1,7 @@
 package org.tron.mongodb;
 
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.UpdateOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +40,15 @@ public abstract class MongoTemplate {
         MongoCollection<Document> collection = getCollection();
         if (Objects.nonNull(collection)){
             collection.insertOne(Converter.jsonStringToDocument(entity));
+        }
+    }
+
+    public void upsertEntity(String indexKey, Object indexValue, String entity) {
+        MongoCollection<Document> mongoCollection = getCollection();
+        if (Objects.nonNull(mongoCollection)){
+            Bson filter = Filters.eq(indexKey, indexValue);
+            mongoCollection.replaceOne(filter, Converter.jsonStringToDocument(entity),
+                new ReplaceOptions().upsert(true));
         }
     }
 

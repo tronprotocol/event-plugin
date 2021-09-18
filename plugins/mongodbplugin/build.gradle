@@ -15,7 +15,7 @@ dependencies {
     exclude group: "org.slf4j"
   }
   
-  compile ("org.mongodb:mongo-java-driver:3.6.3"){
+  compile ("org.mongodb:mongo-java-driver:3.12.10"){
     exclude group: "org.slf4j"
   }
 

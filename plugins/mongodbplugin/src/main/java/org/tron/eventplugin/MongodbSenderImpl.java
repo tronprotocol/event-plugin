@@ -1,5 +1,6 @@
 package org.tron.eventplugin;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,7 @@ public class MongodbSenderImpl {
 
   private static MongodbSenderImpl instance = null;
   private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
-  ExecutorService service = Executors.newFixedThreadPool(8);
+  private ExecutorService service = Executors.newFixedThreadPool(8);
 
   private boolean loaded = false;
   private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
@@ -45,6 +46,7 @@ public class MongodbSenderImpl {
   private String dbName;
   private String dbUserName;
   private String dbPassword;
+  private int version; // 1: no index, 2: has index
 
   private MongoConfig mongoConfig;
 
@@ -66,13 +68,18 @@ public class MongodbSenderImpl {
     }
 
     String[] params = dbConfig.split("\\|");
-    if (params.length != 3) {
+    if (params.length != 3 && params.length != 4) {
       return;
     }
 
     dbName = params[0];
     dbUserName = params[1];
     dbPassword = params[2];
+    version = 1;
+
+    if (params.length == 4) {
+      version = Integer.valueOf(params[3]);
+    }
 
     loadMongoConfig();
   }
@@ -127,41 +134,54 @@ public class MongodbSenderImpl {
   }
 
   private void createCollections() {
+    if (mongoConfig.getVersion() == 2) {
+      Map<String, Boolean> indexOptions = new HashMap<>();
+      indexOptions.put("blockNumber", true);
+      mongoManager.createCollection(blockTopic, indexOptions);
 
-    Map<String, Boolean> col2unique1 = new HashMap<>();
-    col2unique1.put("blockNumber", true);
-    mongoManager.createCollection(blockTopic, col2unique1);
+      indexOptions = new HashMap<>();
+      indexOptions.put("transactionId", true);
+      mongoManager.createCollection(transactionTopic, indexOptions);
+
+      // indexOptions = new HashMap<>();
+      // indexOptions.put("uniqueId", true);
+      // mongoManager.createCollection(contractLogTopic, indexOptions);
+      mongoManager.createCollection(contractLogTopic);
+
+      // indexOptions = new HashMap<>();
+      // indexOptions.put("uniqueId", true);
+      // mongoManager.createCollection(contractEventTopic, indexOptions);
+      mongoManager.createCollection(contractEventTopic);
+
+      indexOptions = new HashMap<>();
+      indexOptions.put("latestSolidifiedBlockNumber", true);
+      mongoManager.createCollection(solidityTopic, indexOptions);
+
+      // indexOptions = new HashMap<>();
+      // indexOptions.put("uniqueId", true);
+      // mongoManager.createCollection(solidityEventTopic, indexOptions);
+      mongoManager.createCollection(solidityEventTopic);
+
+      indexOptions = new HashMap<>();
+      indexOptions.put("uniqueId", true);
+      indexOptions.put("contractAddress", false);
+      mongoManager.createCollection(solidityLogTopic, indexOptions);
+    } else {
+      mongoManager.createCollection(blockTopic);
+      mongoManager.createCollection(transactionTopic);
+      mongoManager.createCollection(contractLogTopic);
+      mongoManager.createCollection(contractEventTopic);
+      mongoManager.createCollection(solidityTopic);
+      mongoManager.createCollection(solidityEventTopic);
+      mongoManager.createCollection(solidityLogTopic);
+    }
+
     createMongoTemplate(blockTopic);
-
-    Map<String, Boolean> col2unique2 = new HashMap<>();
-    col2unique2.put("transactionId", true);
-    mongoManager.createCollection(transactionTopic, col2unique2);
     createMongoTemplate(transactionTopic);
-
-    Map<String, Boolean> col2unique3 = new HashMap<>();
-    col2unique3.put("uniqueId", true);
-    mongoManager.createCollection(contractLogTopic, col2unique3);
     createMongoTemplate(contractLogTopic);
-
-    Map<String, Boolean> col2unique4 = new HashMap<>();
-    col2unique4.put("uniqueId", true);
-    mongoManager.createCollection(contractEventTopic, col2unique4);
     createMongoTemplate(contractEventTopic);
-
-    Map<String, Boolean> col2unique5 = new HashMap<>();
-    col2unique5.put("latestSolidifiedBlockNumber", true);
-    mongoManager.createCollection(solidityTopic, col2unique5);
     createMongoTemplate(solidityTopic);
-
-    Map<String, Boolean> col2unique6 = new HashMap<>();
-    col2unique6.put("uniqueId", true);
-    mongoManager.createCollection(solidityEventTopic, col2unique6);
     createMongoTemplate(solidityEventTopic);
-
-    Map<String, Boolean> col2unique7 = new HashMap<>();
-    col2unique7.put("uniqueId", true);
-    col2unique7.put("contractAddress", false);
-    mongoManager.createCollection(solidityLogTopic, col2unique7);
     createMongoTemplate(solidityLogTopic);
   }
 
@@ -190,6 +210,7 @@ public class MongodbSenderImpl {
       mongoConfig.setDbName(dbName);
       mongoConfig.setUsername(dbUserName);
       mongoConfig.setPassword(dbPassword);
+      mongoConfig.setVersion(version);
       mongoConfig.setConnectionsPerHost(connectionsPerHost);
       mongoConfig.setThreadsAllowedToBlockForConnectionMultiplier(
           threadsAllowedToBlockForConnectionMultiplie);
@@ -252,16 +273,51 @@ public class MongodbSenderImpl {
     return triggerQueue;
   }
 
+  public void upsertEntityLong(MongoTemplate template, Object data, String indexKey) {
+    String dataStr = (String) data;
+    try {
+      JSONObject jsStr = JSON.parseObject(dataStr);
+      Long indexValue = jsStr.getLong(indexKey);
+      if (indexValue != null) {
+        template.upsertEntity(indexKey, indexValue, dataStr);
+      } else {
+        template.addEntity(dataStr);
+      }
+    } catch (Exception ex) {
+      log.error("upsertEntityLong exception happened in parse object ", ex);
+    }
+  }
+
+  public void upsertEntityString(MongoTemplate template, Object data, String indexKey) {
+    String dataStr = (String) data;
+    try {
+      JSONObject jsStr = JSON.parseObject(dataStr);
+      String indexValue = jsStr.getString(indexKey);
+      if (indexValue != null) {
+        template.upsertEntity(indexKey, indexValue, dataStr);
+      } else {
+        template.addEntity(dataStr);
+      }
+    } catch (Exception ex) {
+      log.error("upsertEntityLong exception happened in parse object ", ex);
+    }
+  }
+
   public void handleBlockEvent(Object data) {
     if (blockTopic == null || blockTopic.length() == 0) {
       return;
     }
+
     MongoTemplate template = mongoTemplateMap.get(blockTopic);
     if (Objects.nonNull(template)) {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          template.addEntity((String) data);
+          if (mongoConfig.getVersion() == 2) {
+            upsertEntityLong(template, data, "blockNumber");
+          } else {
+            template.addEntity((String) data);
+          }
         }
       });
     }
@@ -277,7 +333,11 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          template.addEntity((String) data);
+          if (mongoConfig.getVersion() == 2) {
+            upsertEntityString(template, data, "transactionId");
+          } else {
+            template.addEntity((String) data);
+          }
         }
       });
     }
@@ -293,7 +353,11 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          template.addEntity((String) data);
+          if (mongoConfig.getVersion() == 2) {
+            upsertEntityString(template, data, "latestSolidifiedBlockNumber");
+          } else {
+            template.addEntity((String) data);
+          }
         }
       });
     }
@@ -354,7 +418,11 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          template.addEntity((String) data);
+          if (mongoConfig.getVersion() == 2) {
+            upsertEntityString(template, data, "uniqueId");
+          } else {
+            template.addEntity((String) data);
+          }
         }
       });
     }

@@ -10,6 +10,7 @@ import com.mongodb.client.model.Indexes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.pf4j.util.StringUtils;
 
 public class MongoManager {
@@ -48,18 +49,29 @@ public class MongoManager {
     db = mongo.getDatabase(databaseName);
   }
 
-  public void createCollection(String collectionName, Map<String, Boolean> col2unique) {
+  public void createCollection(String collectionName) {
+    if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
+      if (Objects.isNull(db.getCollection(collectionName))){
+        db.createCollection(collectionName);
+      }
+    }
+  }
+
+  public void createCollection(String collectionName, Map<String, Boolean> indexOptions) {
     if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
       List<String> collectionList = new ArrayList<>();
       db.listCollectionNames().into(collectionList);
+
       if (!collectionList.contains(collectionName)) {
         db.createCollection(collectionName);
-        if (col2unique == null) {
+
+        // create index
+        if (indexOptions == null) {
           return;
         }
-        for (String col : col2unique.keySet()) {
+        for (String col : indexOptions.keySet()) {
           db.getCollection(collectionName).createIndex(Indexes.ascending(col),
-              new IndexOptions().name(col).unique(col2unique.get(col)));
+              new IndexOptions().name(col).unique(indexOptions.get(col)));
         }
       }
     }
