@@ -138,24 +138,30 @@ public class MongodbSenderImpl {
     mongoManager.createCollection(transactionTopic, col2unique2);
     createMongoTemplate(transactionTopic);
 
-    mongoManager.createCollection(contractLogTopic, null);
-    createMongoTemplate(contractLogTopic);
-
-    mongoManager.createCollection(contractEventTopic, null);
-    createMongoTemplate(contractEventTopic);
-
     Map<String, Boolean> col2unique3 = new HashMap<>();
-    col2unique3.put("latestSolidifiedBlockNumber", true);
-    mongoManager.createCollection(solidityTopic, col2unique3);
-    createMongoTemplate(solidityTopic);
-
-    mongoManager.createCollection(solidityEventTopic, null);
-    createMongoTemplate(solidityEventTopic);
+    col2unique3.put("uniqueId", true);
+    mongoManager.createCollection(contractLogTopic, col2unique3);
+    createMongoTemplate(contractLogTopic);
 
     Map<String, Boolean> col2unique4 = new HashMap<>();
     col2unique4.put("uniqueId", true);
-    col2unique4.put("contractAddress", false);
-    mongoManager.createCollection(solidityLogTopic, col2unique4);
+    mongoManager.createCollection(contractEventTopic, col2unique4);
+    createMongoTemplate(contractEventTopic);
+
+    Map<String, Boolean> col2unique5 = new HashMap<>();
+    col2unique5.put("latestSolidifiedBlockNumber", true);
+    mongoManager.createCollection(solidityTopic, col2unique5);
+    createMongoTemplate(solidityTopic);
+
+    Map<String, Boolean> col2unique6 = new HashMap<>();
+    col2unique6.put("uniqueId", true);
+    mongoManager.createCollection(solidityEventTopic, col2unique6);
+    createMongoTemplate(solidityEventTopic);
+
+    Map<String, Boolean> col2unique7 = new HashMap<>();
+    col2unique7.put("uniqueId", true);
+    col2unique7.put("contractAddress", false);
+    mongoManager.createCollection(solidityLogTopic, col2unique7);
     createMongoTemplate(solidityLogTopic);
   }
 
