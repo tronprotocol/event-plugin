@@ -354,7 +354,7 @@ public class MongodbSenderImpl {
         @Override
         public void run() {
           if (mongoConfig.getVersion() == 2) {
-            upsertEntityString(template, data, "latestSolidifiedBlockNumber");
+            upsertEntityLong(template, data, "latestSolidifiedBlockNumber");
           } else {
             template.addEntity((String) data);
           }
