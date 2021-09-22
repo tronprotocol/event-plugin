@@ -150,7 +150,7 @@ public class MongodbSenderImpl {
       indexOptions = new HashMap<>();
       indexOptions.put("uniqueId", true);
       mongoManager.createCollection(solidityEventTopic, indexOptions);
-      mongoManager.createCollection(contractLogTopic, indexOptions);
+      mongoManager.createCollection(contractEventTopic, indexOptions);
 
       indexOptions = new HashMap<>();
       indexOptions.put("uniqueId", true);
