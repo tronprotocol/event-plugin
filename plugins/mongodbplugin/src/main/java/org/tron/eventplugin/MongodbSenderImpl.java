@@ -27,7 +27,7 @@ public class MongodbSenderImpl {
   private ExecutorService service = Executors.newFixedThreadPool(8);
 
   private boolean loaded = false;
-  private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
+  private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue<>();
 
   private String blockTopic = "";
   private String transactionTopic = "";
