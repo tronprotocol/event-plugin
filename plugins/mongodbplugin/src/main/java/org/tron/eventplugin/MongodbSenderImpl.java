@@ -134,7 +134,7 @@ public class MongodbSenderImpl {
   }
 
   private void createCollections() {
-    if (mongoConfig.getVersion() == 2) {
+    if (mongoConfig.enabledIndexes()) {
       Map<String, Boolean> indexOptions = new HashMap<>();
       indexOptions.put("blockNumber", true);
       mongoManager.createCollection(blockTopic, indexOptions);
@@ -143,29 +143,20 @@ public class MongodbSenderImpl {
       indexOptions.put("transactionId", true);
       mongoManager.createCollection(transactionTopic, indexOptions);
 
-      // indexOptions = new HashMap<>();
-      // indexOptions.put("uniqueId", true);
-      // mongoManager.createCollection(contractLogTopic, indexOptions);
-      mongoManager.createCollection(contractLogTopic);
-
-      // indexOptions = new HashMap<>();
-      // indexOptions.put("uniqueId", true);
-      // mongoManager.createCollection(contractEventTopic, indexOptions);
-      mongoManager.createCollection(contractEventTopic);
-
       indexOptions = new HashMap<>();
       indexOptions.put("latestSolidifiedBlockNumber", true);
       mongoManager.createCollection(solidityTopic, indexOptions);
 
-      // indexOptions = new HashMap<>();
-      // indexOptions.put("uniqueId", true);
-      // mongoManager.createCollection(solidityEventTopic, indexOptions);
-      mongoManager.createCollection(solidityEventTopic);
+      indexOptions = new HashMap<>();
+      indexOptions.put("uniqueId", true);
+      mongoManager.createCollection(solidityEventTopic, indexOptions);
+      mongoManager.createCollection(contractLogTopic, indexOptions);
 
       indexOptions = new HashMap<>();
       indexOptions.put("uniqueId", true);
       indexOptions.put("contractAddress", false);
       mongoManager.createCollection(solidityLogTopic, indexOptions);
+      mongoManager.createCollection(contractLogTopic, indexOptions);
     } else {
       mongoManager.createCollection(blockTopic);
       mongoManager.createCollection(transactionTopic);
@@ -313,7 +304,7 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          if (mongoConfig.getVersion() == 2) {
+          if (mongoConfig.enabledIndexes()) {
             upsertEntityLong(template, data, "blockNumber");
           } else {
             template.addEntity((String) data);
@@ -333,7 +324,7 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          if (mongoConfig.getVersion() == 2) {
+          if (mongoConfig.enabledIndexes()) {
             upsertEntityString(template, data, "transactionId");
           } else {
             template.addEntity((String) data);
@@ -353,7 +344,7 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          if (mongoConfig.getVersion() == 2) {
+          if (mongoConfig.enabledIndexes()) {
             upsertEntityLong(template, data, "latestSolidifiedBlockNumber");
           } else {
             template.addEntity((String) data);
@@ -363,6 +354,15 @@ public class MongodbSenderImpl {
     }
   }
 
+  public void handleInsertContractTrigger(MongoTemplate template, Object data, String indexKey) {
+    if (mongoConfig.enabledIndexes()) {
+      upsertEntityString(template, data, indexKey);
+    } else {
+      template.addEntity((String) data);
+    }
+  }
+
+  // will not delete when removed is set to true
   public void handleContractLogTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(contractLogTopic)) {
       return;
@@ -373,7 +373,7 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          template.addEntity((String) data);
+          handleInsertContractTrigger(template, data, "uniqueId");
         }
       });
     }
@@ -392,7 +392,7 @@ public class MongodbSenderImpl {
           String dataStr = (String) data;
           if (dataStr.contains("\"removed\":true")) {
             try {
-              JSONObject jsStr = JSONObject.parseObject(dataStr);
+              JSONObject jsStr = JSON.parseObject(dataStr);
               String uniqueId = jsStr.getString("uniqueId");
               if (uniqueId != null) {
                 template.delete("uniqueId", uniqueId);
@@ -401,7 +401,7 @@ public class MongodbSenderImpl {
               log.error("unknown exception happened in parse object ", ex);
             }
           } else {
-            template.addEntity(dataStr);
+            handleInsertContractTrigger(template, data, "uniqueId");
           }
         }
       });
@@ -418,11 +418,7 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          if (mongoConfig.getVersion() == 2) {
-            upsertEntityString(template, data, "uniqueId");
-          } else {
-            template.addEntity((String) data);
-          }
+          handleInsertContractTrigger(template, data, "uniqueId");
         }
       });
     }
@@ -438,7 +434,7 @@ public class MongodbSenderImpl {
       service.execute(new Runnable() {
         @Override
         public void run() {
-          template.addEntity((String) data);
+          handleInsertContractTrigger(template, data, "uniqueId");
         }
       });
     }

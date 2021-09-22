@@ -77,4 +77,8 @@ public class MongoConfig {
         threadsAllowedToBlockForConnectionMultiplier;
   }
 
+  public boolean enabledIndexes() {
+    return version == 2;
+  }
+
 }
