@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.pf4j.util.StringUtils;
 
+@Slf4j
 public class MongoManager {
 
   private MongoClient mongo;
@@ -58,6 +60,8 @@ public class MongoManager {
   }
 
   public void createCollection(String collectionName, Map<String, Boolean> indexOptions) {
+    log.info("[createCollection] collection={}", collectionName);
+
     if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
       List<String> collectionList = new ArrayList<>();
       db.listCollectionNames().into(collectionList);
@@ -70,6 +74,7 @@ public class MongoManager {
           return;
         }
         for (String col : indexOptions.keySet()) {
+          log.info("create index, col={}", col);
           db.getCollection(collectionName).createIndex(Indexes.ascending(col),
               new IndexOptions().name(col).unique(indexOptions.get(col)));
         }
