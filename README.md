@@ -20,17 +20,20 @@ This is an implementation of Tron eventsubscribe model.
 event.subscribe = {
     path = "" // absolute path of plugin
     server = "" // target server address to receive event triggers
-    dbconfig = "" // dbname|username|password
+    dbconfig = "" // dbname|username|password|version, version can be ignored (eg: dbname|username|password), if it is set to 2(default is 1), will create indexes for collections when the collections are not exist
     topics = [
         {
           triggerName = "block" // block trigger, the value can't be modified
           enable = false
           topic = "block" // plugin topic, the value could be modified
+          solidified = true // if set true, just need solidified block, default is false
         },
         {
           triggerName = "transaction"
           enable = false
           topic = "transaction"
+          solidified = true
+          ethCompatible = true // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, EnergyUnitPrice, default is false
         },
         {
           triggerName = "contractevent"
@@ -41,6 +44,7 @@ event.subscribe = {
           triggerName = "contractlog"
           enable = true
           topic = "contractlog"
+          redundancy = true // if set true, contractevent will also be regarded as contractlog
         },
         {
           triggerName = "solidity" // solidity block event trigger, the value can't be modified
@@ -56,6 +60,7 @@ event.subscribe = {
           triggerName = "soliditylog"
           enable = false
           topic = "soliditylog"
+          redundancy = true // if set true, solidityevent will also be regarded as soliditylog
         }
     ]
 
@@ -77,7 +82,7 @@ event.subscribe = {
  * **path**: is the absolute path of "plugin-kafka-1.0.0.zip"
  * **server**: Kafka server address, the default port is 9092
  * **topics**: each event type maps to one Kafka topic, we support four event types subscribing, block, transaction, contractlog and contractevent.
- * **dbconfig**: db configuration information for mongodb, if using kafka, delete this one; if using Mongodb, add like that dbname|username|password
+ * **dbconfig**: db configuration information for mongodb, if using kafka, delete this one; if using Mongodb, add like that dbname|username|password or dbname|username|password|version if you want to create indexed when init
  * **triggerName**: the trigger type, the value can't be modified.
  * **enable**: plugin can receive nothing if the value is false.
  * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running  
