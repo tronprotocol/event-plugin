@@ -12,7 +12,7 @@ This is an implementation of Tron eventsubscribe model.
 2. Go to eventplugin `cd eventplugin` 
 3. run `./gradlew build`
 
-* This will produce one plugin zip, named `plugin-kafka-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
+* This will produce plugin zips, named `plugin-kafka-1.0.0.zip` and `plugin-mongodb-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
 
 
 ### Edit **config.conf** of Java-tron, add the following fileds:
@@ -20,7 +20,7 @@ This is an implementation of Tron eventsubscribe model.
 event.subscribe = {
     path = "" // absolute path of plugin
     server = "" // target server address to receive event triggers
-    dbconfig = "" // dbname|username|password|version, version can be ignored (eg: dbname|username|password), if it is set to 2(default is 1), will create indexes for collections when the collections are not exist
+    dbconfig = "" // dbname|username|password, if you want to create indexes for collections when the collections are not exist, you can add version and set it to 2, as dbname|username|password|version
     topics = [
         {
           triggerName = "block" // block trigger, the value can't be modified
@@ -33,7 +33,7 @@ event.subscribe = {
           enable = false
           topic = "transaction"
           solidified = true
-          ethCompatible = true // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, EnergyUnitPrice, default is false
+          ethCompatible = true // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, energyUnitPrice, default is false
         },
         {
           triggerName = "contractevent"
@@ -47,7 +47,7 @@ event.subscribe = {
           redundancy = true // if set true, contractevent will also be regarded as contractlog
         },
         {
-          triggerName = "solidity" // solidity block event trigger, the value can't be modified
+          triggerName = "solidity" // solidity block trigger(just include solidity block number and timestamp), the value can't be modified
           enable = true            // the default value is true
           topic = "solidity"
         },
@@ -79,13 +79,17 @@ event.subscribe = {
 
 
 ```
- * **path**: is the absolute path of "plugin-kafka-1.0.0.zip"
- * **server**: Kafka server address, the default port is 9092
- * **topics**: each event type maps to one Kafka topic, we support four event types subscribing, block, transaction, contractlog and contractevent.
+ * **path**: is the absolute path of "plugin-kafka-1.0.0.zip" or "plugin-mongodb-1.0.0.zip"
+ * **server**: Kafka(or MongoDB) server address, the default port is 9092(MongoDB is 27017)
  * **dbconfig**: db configuration information for mongodb, if using kafka, delete this one; if using Mongodb, add like that dbname|username|password or dbname|username|password|version if you want to create indexes when init
- * **triggerName**: the trigger type, the value can't be modified.
- * **enable**: plugin can receive nothing if the value is false.
- * **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running  
+ * **topics**: each event type maps to one Kafka topic(or MongoDB collection), we support seven event types subscribing, block, transaction, contractlog, contractevent, solidity, soliditylog and solidityevent.   
+   **triggerName**: the trigger type, the value can't be modified.  
+   **enable**: plugin can receive nothing if the value is false.  
+   **topic**: the value is the kafka topic to receive events. Make sure it has been created and Kafka process is running  
+   **solidified**: if just need solidified data, just works for block and transaction  
+   **redundancy**: if will also trigger event as log, just works for contractlog and soliditylog   
+   **ethCompatible**: if set to true, will add some fields to transaction: transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, energyUnitPrice
+   
  * **filter**: filter condition for process trigger.
  **note**: if the server is not 127.0.0.1, pls set some properties in config/server.properties file  
            remove comment and set listeners=PLAINTEXT://:9092  
