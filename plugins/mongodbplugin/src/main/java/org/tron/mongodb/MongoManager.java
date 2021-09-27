@@ -60,7 +60,7 @@ public class MongoManager {
   }
 
   public void createCollection(String collectionName, Map<String, Boolean> indexOptions) {
-    log.info("[createCollection] collection={}", collectionName);
+    log.info("[createCollection] collection={} start", collectionName);
 
     if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
       List<String> collectionList = new ArrayList<>();
@@ -78,6 +78,8 @@ public class MongoManager {
           db.getCollection(collectionName).createIndex(Indexes.ascending(col),
               new IndexOptions().name(col).unique(indexOptions.get(col)));
         }
+      } else {
+        log.info("[createCollection] collection={} already exists", collectionName);
       }
     }
   }
