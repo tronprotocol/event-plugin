@@ -100,4 +100,9 @@ public class KafkaEventListener implements IPluginEventListener {
 
         MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
+
+    @Override
+    public String getEventFilterList() {
+        return null;
+    }
 }

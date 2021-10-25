@@ -1,5 +1,8 @@
 package org.tron.eventplugin;
 import com.alibaba.fastjson.JSONObject;
+import com.mongodb.BasicDBObject;
+import com.mongodb.util.JSON;
+import org.bson.Document;
 import org.pf4j.util.StringUtils;
 
 import java.io.IOException;
@@ -30,6 +33,10 @@ public class MongodbSenderImpl{
     private String contractEventTopic = "";
     private String contractLogTopic = "";
     private String solidityTopic = "";
+
+    private final String filterCollection = "filters";
+
+    private final String contractLogCollectionFormat = "log_filter_%s";
 
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
@@ -137,6 +144,9 @@ public class MongodbSenderImpl{
 
         mongoManager.createCollection(solidityTopic);
         createMongoTemplate(solidityTopic);
+
+        mongoManager.createCollection(filterCollection);
+        createMongoTemplate(filterCollection);
     }
 
     private void loadMongoConfig(){
@@ -273,18 +283,26 @@ public class MongodbSenderImpl{
     }
 
     public void handleContractLogTrigger(Object data) {
-        if (Objects.isNull(data) || Objects.isNull(contractLogTopic)){
+        if (Objects.isNull(data)){
             return;
         }
-
-        MongoTemplate template = mongoTemplateMap.get(contractLogTopic);
-        if (Objects.nonNull(template)) {
-            service.execute(new Runnable() {
-                @Override
-                public void run() {
-                    template.addEntity((String)data);
-                }
-            });
+        JSONObject trigger = JSONObject.parseObject((String) data);
+        List<String> filterNameList = trigger.getObject("filterNameList", List.class);
+        for (String filterName : filterNameList){
+            String collection = String.format(contractLogCollectionFormat, filterName);
+            if (mongoTemplateMap.get(collection) == null){
+                mongoManager.createCollection(collection);
+                createMongoTemplate(collection);
+            }
+            MongoTemplate template = mongoTemplateMap.get(collection);
+            if (Objects.nonNull(template)) {
+                service.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        template.addEntity((String)data);
+                    }
+                });
+            }
         }
     }
 
@@ -315,6 +333,15 @@ public class MongodbSenderImpl{
                 }
             });
         }
+    }
+
+    public String getEventFilterList(){
+        MongoTemplate template = mongoTemplateMap.get(filterCollection);
+        if (Objects.nonNull(template)) {
+            List<Document> filters = template.queryByCondition(BasicDBObject.parse("{disable : { $exists: false }}"));
+            return JSON.serialize(filters);
+        }
+        return null;
     }
 
     private Runnable triggerProcessLoop =

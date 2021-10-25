@@ -100,4 +100,9 @@ public class MongodbEventListener implements IPluginEventListener {
 
         MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
+
+    @Override
+    public String getEventFilterList() {
+        return MongodbSenderImpl.getInstance().getEventFilterList();
+    }
 }
