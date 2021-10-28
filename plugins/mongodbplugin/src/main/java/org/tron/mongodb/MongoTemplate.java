@@ -1,5 +1,6 @@
 package org.tron.mongodb;
 
+import com.mongodb.client.model.UpdateOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -64,10 +65,14 @@ public abstract class MongoTemplate {
         return result.getModifiedCount();
     }
 
-    public UpdateResult updateMany(Bson filter, Bson update) {
+    public UpdateResult updateMany(Bson filter, Bson update, UpdateOptions updateOptions) {
         MongoCollection<Document> collection = getCollection();
-        UpdateResult result = collection.updateMany(filter, update);
-        return result;
+        assert collection != null : "collection is null";
+        if (updateOptions != null) {
+            return collection.updateMany(filter, update, updateOptions);
+        } else {
+            return collection.updateMany(filter, update);
+        }
     }
 
     public long delete(String whereColumn, String whereValue) {
@@ -103,7 +108,7 @@ public abstract class MongoTemplate {
         return documents;
     }
 
-    public Document queryOne(String key, String value) {
+    public <TItem> Document queryOne(String key, TItem value) {
         Bson filter = Filters.eq(key, value);
         return this.getCollection().find(filter).first();
     }

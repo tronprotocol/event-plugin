@@ -1,7 +1,10 @@
 package org.tron.eventplugin;
 import com.alibaba.fastjson.JSONObject;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.util.JSON;
+import java.util.stream.Collectors;
 import org.bson.Document;
 import org.pf4j.util.StringUtils;
 
@@ -27,6 +30,7 @@ public class MongodbSenderImpl{
 
     private boolean loaded = false;
     private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
+    private Map<String, List<JSONObject>> contractLogTriggersMap = new HashMap<>();
 
     private String blockTopic = "";
     private String transactionTopic = "";
@@ -37,6 +41,10 @@ public class MongodbSenderImpl{
     private final String filterCollection = "filters";
 
     private final String contractLogCollectionFormat = "log_filter_%s";
+
+    private final String blockNumberCollection = "block_num";
+
+    private final String contractLogRevertCollectionFormat = "log_filter_revert_%s";
 
     private Thread triggerProcessThread;
     private boolean isRunTriggerProcessThread = true;
@@ -130,20 +138,8 @@ public class MongodbSenderImpl{
     }
 
     private void createCollections(){
-        mongoManager.createCollection(blockTopic);
-        createMongoTemplate(blockTopic);
-
-        mongoManager.createCollection(transactionTopic);
-        createMongoTemplate(transactionTopic);
-
-        mongoManager.createCollection(contractLogTopic);
-        createMongoTemplate(contractLogTopic);
-
-        mongoManager.createCollection(contractEventTopic);
-        createMongoTemplate(contractEventTopic);
-
-        mongoManager.createCollection(solidityTopic);
-        createMongoTemplate(solidityTopic);
+        mongoManager.createCollection(blockNumberCollection);
+        createMongoTemplate(blockNumberCollection);
 
         mongoManager.createCollection(filterCollection);
         createMongoTemplate(filterCollection);
@@ -239,30 +235,36 @@ public class MongodbSenderImpl{
         if (blockTopic == null || blockTopic.length() == 0){
             return;
         }
-        MongoTemplate template = mongoTemplateMap.get(blockTopic);
-        if (Objects.nonNull(template)) {
-            service.execute(new Runnable() {
-                @Override
-                public void run() {
-                    template.addEntity((String)data);
-                }
-            });
-        }
+        JSONObject trigger = JSONObject.parseObject((String) data);
+        long blockNumber = trigger.getLong("blockNumber");
+        setBlockNumber(blockNumber, false);
     }
 
     public void handleTransactionTrigger(Object data) {
         if (Objects.isNull(data) || Objects.isNull(transactionTopic)){
             return;
         }
+        JSONObject trigger = JSONObject.parseObject((String) data);
+        String transactionId = trigger.getString("transactionId");
+        List<JSONObject> contractLogTriggers = contractLogTriggersMap.get(transactionId);
+        if (contractLogTriggers == null || contractLogTriggers.isEmpty()){
+            return;
+        }
 
-        MongoTemplate template = mongoTemplateMap.get(transactionTopic);
-        if (Objects.nonNull(template)) {
-            service.execute(new Runnable() {
-                @Override
-                public void run() {
-                    template.addEntity((String)data);
-                }
-            });
+        Set<String> filterNameList = new HashSet<>();
+        contractLogTriggers.forEach(logTrigger -> filterNameList.addAll(logTrigger.getObject("filterNameList", List.class)));
+
+        for (String filterName : filterNameList){
+            String collection = String.format(contractLogCollectionFormat, filterName);
+            MongoTemplate template = getMongoTemplate(collection);
+            if (Objects.nonNull(template)) {
+                service.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        template.addList(contractLogTriggers.stream().map(Document::new).collect(Collectors.toList()));
+                    }
+                });
+            }
         }
     }
 
@@ -270,16 +272,9 @@ public class MongodbSenderImpl{
         if (Objects.isNull(data) || Objects.isNull(solidityTopic)){
             return;
         }
-
-        MongoTemplate template = mongoTemplateMap.get(solidityTopic);
-        if (Objects.nonNull(template)) {
-            service.execute(new Runnable() {
-                @Override
-                public void run() {
-                    template.addEntity((String)data);
-                }
-            });
-        }
+        JSONObject trigger = JSONObject.parseObject((String) data);
+        long blockNumber = trigger.getLong("latestSolidifiedBlockNumber");
+        setBlockNumber(blockNumber, true);
     }
 
     public void handleContractLogTrigger(Object data) {
@@ -287,56 +282,14 @@ public class MongodbSenderImpl{
             return;
         }
         JSONObject trigger = JSONObject.parseObject((String) data);
-        List<String> filterNameList = trigger.getObject("filterNameList", List.class);
-        for (String filterName : filterNameList){
-            String collection = String.format(contractLogCollectionFormat, filterName);
-            if (mongoTemplateMap.get(collection) == null){
-                mongoManager.createCollection(collection);
-                createMongoTemplate(collection);
-            }
-            MongoTemplate template = mongoTemplateMap.get(collection);
-            if (Objects.nonNull(template)) {
-                service.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        template.addEntity((String)data);
-                    }
-                });
-            }
-        }
-    }
-
-    public void handleContractEventTrigger(Object data) {
-        if (Objects.isNull(data) || Objects.isNull(contractEventTopic)){
-            return;
-        }
-
-        MongoTemplate template = mongoTemplateMap.get(contractEventTopic);
-        if (Objects.nonNull(template)) {
-            service.execute(new Runnable() {
-                @Override
-                public void run() {
-                    String dataStr = (String)data;
-                    if (dataStr.contains("\"removed\":true")) {
-                        try {
-                            JSONObject jsStr = JSONObject.parseObject(dataStr);
-                            String uniqueId = jsStr.getString("uniqueId");
-                            if (uniqueId != null) {
-                                template.delete("uniqueId", uniqueId);
-                            }
-                        } catch (Exception ex) {
-                            log.error("unknown exception happened in parse object ", ex);
-                        }
-                    } else {
-                        template.addEntity(dataStr);
-                    }
-                }
-            });
-        }
+        String transactionId = trigger.getString("transactionId");
+        List<JSONObject> contractLogTriggers = contractLogTriggersMap
+            .computeIfAbsent(transactionId, k -> new ArrayList<>());
+        contractLogTriggers.add(trigger);
     }
 
     public String getEventFilterList(){
-        MongoTemplate template = mongoTemplateMap.get(filterCollection);
+        MongoTemplate template = getMongoTemplate(filterCollection);
         if (Objects.nonNull(template)) {
             List<Document> filters = template.queryByCondition(BasicDBObject.parse("{disable : { $exists: false }}"));
             return JSON.serialize(filters);
@@ -363,9 +316,7 @@ public class MongodbSenderImpl{
                         else if (triggerData.contains(Constant.CONTRACTLOG_TRIGGER_NAME)){
                             handleContractLogTrigger(triggerData);
                         }
-                        else if (triggerData.contains(Constant.CONTRACTEVENT_TRIGGER_NAME)){
-                            handleContractEventTrigger(triggerData);
-                        } else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
+                        else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
                             handleSolidityTrigger(triggerData);
                         }
                     } catch (InterruptedException ex) {
@@ -378,4 +329,32 @@ public class MongodbSenderImpl{
                     }
                 }
             };
+
+    public MongoTemplate getMongoTemplate(String collection) {
+        MongoTemplate mongoTemplate = mongoTemplateMap.get(collection);
+        if (mongoTemplate == null){
+            mongoManager.createCollection(collection);
+            return createMongoTemplate(collection);
+        } else {
+            return mongoTemplate;
+        }
+    }
+
+    public void setBlockNumber(long blockNumber, boolean solidity){
+        MongoTemplate mongoTemplate = getMongoTemplate(blockNumberCollection);
+        mongoTemplate.updateMany(Filters.eq("is_solidity", solidity),
+            new Document("$set", new Document("block_number", blockNumber)),
+            new UpdateOptions().upsert(true));
+    }
+
+    public long getBlockNumber(boolean solidity){
+        MongoTemplate mongoTemplate = getMongoTemplate(blockNumberCollection);
+        Document document = mongoTemplate.queryOne("is_solidity", solidity);
+        if (document != null) {
+            return document.getLong("block_number");
+        } else {
+            return 0;
+        }
+    }
+
 }
