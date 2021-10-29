@@ -31,7 +31,7 @@ public class MongodbSenderImpl{
 
     private boolean loaded = false;
     private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
-    private Map<String, List<JSONObject>> contractLogTriggersMap = new HashMap<>();
+    private Map<String, LinkedHashMap<String, JSONObject>> contractLogTriggersMap = new HashMap<>();
 
     private String blockTopic = "";
     private String transactionTopic = "";
@@ -247,13 +247,17 @@ public class MongodbSenderImpl{
         }
         JSONObject trigger = JSONObject.parseObject((String) data);
         String transactionId = trigger.getString("transactionId");
-        List<JSONObject> contractLogTriggers = contractLogTriggersMap.get(transactionId);
+        LinkedHashMap<String, JSONObject> contractLogTriggers = contractLogTriggersMap.remove(transactionId);
         if (contractLogTriggers == null || contractLogTriggers.isEmpty()){
             return;
         }
+        JSONObject firstTrigger = contractLogTriggers.values().iterator().next();
+        long blockNumber = firstTrigger.getLong("blockNumber");
 
         Set<String> filterNameList = new HashSet<>();
-        contractLogTriggers.forEach(logTrigger -> filterNameList.addAll(logTrigger.getObject("filterNameList", List.class)));
+        contractLogTriggers.values().forEach(
+            logTrigger -> filterNameList.addAll(logTrigger.getObject("filterNameList", List.class))
+        );
 
         for (String filterName : filterNameList){
             MongoTemplate template = getOrCreateLogFilterTemplate(filterName, false);
@@ -261,7 +265,12 @@ public class MongodbSenderImpl{
                 service.execute(new Runnable() {
                     @Override
                     public void run() {
-                        template.addList(contractLogTriggers.stream().map(Document::new).collect(Collectors.toList()));
+                        List<Document> exists = template.queryByCondition(Filters.and(
+                            Filters.eq("blockNumber", blockNumber),
+                            Filters.eq("transactionId", transactionId)));
+                        if(exists == null || exists.isEmpty()){
+                            template.addList(contractLogTriggers.values().stream().map(Document::new).collect(Collectors.toList()));
+                        }
                     }
                 });
             }
@@ -283,9 +292,9 @@ public class MongodbSenderImpl{
         }
         JSONObject trigger = JSONObject.parseObject((String) data);
         String transactionId = trigger.getString("transactionId");
-        List<JSONObject> contractLogTriggers = contractLogTriggersMap
-            .computeIfAbsent(transactionId, k -> new ArrayList<>());
-        contractLogTriggers.add(trigger);
+        LinkedHashMap<String, JSONObject> contractLogTriggers = contractLogTriggersMap
+            .computeIfAbsent(transactionId, k -> new LinkedHashMap<>());
+        contractLogTriggers.put(trigger.getString("uniqueId"), trigger);
     }
 
     public String getEventFilterList(){
@@ -337,7 +346,7 @@ public class MongodbSenderImpl{
         if (mongoTemplate == null){
             mongoManager.createCollection(collection);
             mongoTemplate = createMongoTemplate(collection);
-            mongoTemplate.createIndex(Indexes.ascending("blockNumber"), null);
+            mongoTemplate.createIndex(Indexes.ascending("blockNumber", "transactionId"), null);
         }
         return mongoTemplate;
     }
