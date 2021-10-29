@@ -2,6 +2,7 @@ package org.tron.eventplugin;
 import com.alibaba.fastjson.JSONObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.util.JSON;
 import java.util.stream.Collectors;
@@ -255,8 +256,7 @@ public class MongodbSenderImpl{
         contractLogTriggers.forEach(logTrigger -> filterNameList.addAll(logTrigger.getObject("filterNameList", List.class)));
 
         for (String filterName : filterNameList){
-            String collection = String.format(contractLogCollectionFormat, filterName);
-            MongoTemplate template = getMongoTemplate(collection);
+            MongoTemplate template = getOrCreateLogFilterTemplate(filterName, false);
             if (Objects.nonNull(template)) {
                 service.execute(new Runnable() {
                     @Override
@@ -289,7 +289,7 @@ public class MongodbSenderImpl{
     }
 
     public String getEventFilterList(){
-        MongoTemplate template = getMongoTemplate(filterCollection);
+        MongoTemplate template = mongoTemplateMap.get(filterCollection);
         if (Objects.nonNull(template)) {
             List<Document> filters = template.queryByCondition(BasicDBObject.parse("{disable : { $exists: false }}"));
             return JSON.serialize(filters);
@@ -330,25 +330,27 @@ public class MongodbSenderImpl{
                 }
             };
 
-    public MongoTemplate getMongoTemplate(String collection) {
+    public MongoTemplate getOrCreateLogFilterTemplate(String filterName, boolean forRevert) {
+        String format = forRevert ? contractLogRevertCollectionFormat : contractLogCollectionFormat;
+        String collection = String.format(format, filterName);
         MongoTemplate mongoTemplate = mongoTemplateMap.get(collection);
         if (mongoTemplate == null){
             mongoManager.createCollection(collection);
-            return createMongoTemplate(collection);
-        } else {
-            return mongoTemplate;
+            mongoTemplate = createMongoTemplate(collection);
+            mongoTemplate.createIndex(Indexes.ascending("blockNumber"), null);
         }
+        return mongoTemplate;
     }
 
     public void setBlockNumber(long blockNumber, boolean solidity){
-        MongoTemplate mongoTemplate = getMongoTemplate(blockNumberCollection);
+        MongoTemplate mongoTemplate = mongoTemplateMap.get(blockNumberCollection);
         mongoTemplate.updateMany(Filters.eq("is_solidity", solidity),
             new Document("$set", new Document("block_number", blockNumber)),
             new UpdateOptions().upsert(true));
     }
 
     public long getBlockNumber(boolean solidity){
-        MongoTemplate mongoTemplate = getMongoTemplate(blockNumberCollection);
+        MongoTemplate mongoTemplate = mongoTemplateMap.get(blockNumberCollection);
         Document document = mongoTemplate.queryOne("is_solidity", solidity);
         if (document != null) {
             return document.getLong("block_number");

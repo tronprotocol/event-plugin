@@ -1,5 +1,6 @@
 package org.tron.mongodb;
 
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.UpdateOptions;
 import java.util.ArrayList;
 import java.util.List;
@@ -182,6 +183,16 @@ public abstract class MongoTemplate {
         }
 
         return collection;
+    }
+
+    public String createIndex(Bson keys, IndexOptions indexOptions) {
+        MongoCollection<Document> collection = getCollection();
+        assert collection != null;
+        if (indexOptions != null) {
+            return collection.createIndex(keys, indexOptions);
+        } else {
+            return collection.createIndex(keys);
+        }
     }
 
 }
