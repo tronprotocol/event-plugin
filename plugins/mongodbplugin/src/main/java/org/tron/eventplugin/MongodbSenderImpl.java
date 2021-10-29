@@ -4,6 +4,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.Updates;
 import com.mongodb.util.JSON;
 import java.util.stream.Collectors;
 import org.bson.Document;
@@ -300,7 +301,7 @@ public class MongodbSenderImpl{
     public String getEventFilterList(){
         MongoTemplate template = mongoTemplateMap.get(filterCollection);
         if (Objects.nonNull(template)) {
-            List<Document> filters = template.queryByCondition(BasicDBObject.parse("{disable : { $exists: false }}"));
+            List<Document> filters = template.queryByCondition(Filters.exists("disable", false));
             return JSON.serialize(filters);
         }
         return null;
@@ -354,7 +355,7 @@ public class MongodbSenderImpl{
     public void setBlockNumber(long blockNumber, boolean solidity){
         MongoTemplate mongoTemplate = mongoTemplateMap.get(blockNumberCollection);
         mongoTemplate.updateMany(Filters.eq("is_solidity", solidity),
-            new Document("$set", new Document("block_number", blockNumber)),
+            Updates.set("block_number", blockNumber),
             new UpdateOptions().upsert(true));
     }
 
