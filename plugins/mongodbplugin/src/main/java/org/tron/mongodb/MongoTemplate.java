@@ -2,6 +2,7 @@ package org.tron.mongodb;
 
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.ReplaceOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,79 +33,83 @@ public abstract class MongoTemplate {
   protected abstract <T> Class<T> getReferencedClass();
 
   public void add(Document document) {
-    MongoCollection<Document> collection = getCollection();
-    collection.insertOne(document);
+    MongoCollection<Document> mongoCollection = getCollection();
+    mongoCollection.insertOne(document);
   }
 
   public void addEntity(String entity) {
-    MongoCollection<Document> collection = getCollection();
-    if (Objects.nonNull(collection)) {
-      collection.insertOne(Converter.jsonStringToDocument(entity));
+    MongoCollection<Document> mongoCollection = getCollection();
+    if (Objects.nonNull(mongoCollection)) {
+      mongoCollection.insertOne(Converter.jsonStringToDocument(entity));
+    }
+  }
+
+  public void upsertEntity(String indexKey, Object indexValue, String entity) {
+    MongoCollection<Document> mongoCollection = getCollection();
+    if (Objects.nonNull(mongoCollection)) {
+      Bson filter = Filters.eq(indexKey, indexValue);
+      mongoCollection.replaceOne(filter, Converter.jsonStringToDocument(entity),
+          new ReplaceOptions().upsert(true));
     }
   }
 
   public void addEntityList(List<String> entities) {
-    MongoCollection<Document> collection = getCollection();
+    MongoCollection<Document> mongoCollection = getCollection();
     List<Document> documents = new ArrayList<Document>();
     if (entities != null && !entities.isEmpty()) {
       for (String entity : entities) {
         documents.add(Converter.jsonStringToDocument(Converter.objectToJsonString(entity)));
       }
     }
-    collection.insertMany(documents);
+    mongoCollection.insertMany(documents);
   }
 
   public void addList(List<Document> documents) {
-    MongoCollection<Document> collection = getCollection();
-    collection.insertMany(documents);
+    MongoCollection<Document> mongoCollection = getCollection();
+    mongoCollection.insertMany(documents);
   }
 
-  public long update(
-      String updateColumn, Object updateValue, String whereColumn, Object whereValue) {
-    MongoCollection<Document> collection = getCollection();
-    UpdateResult result =
-        collection.updateMany(
-            Filters.eq(whereColumn, whereValue),
-            new Document("$set", new Document(updateColumn, updateValue)));
+  public long update(String updateColumn, Object updateValue, String whereColumn,
+      Object whereValue) {
+    MongoCollection<Document> mongoCollection = getCollection();
+    UpdateResult result = mongoCollection.updateMany(Filters.eq(whereColumn, whereValue),
+        new Document("$set", new Document(updateColumn, updateValue)));
     return result.getModifiedCount();
   }
 
   public UpdateResult updateMany(Bson filter, Bson update, UpdateOptions updateOptions) {
-    MongoCollection<Document> collection = getCollection();
-    assert collection != null : "collection is null";
+    MongoCollection<Document> mongoCollection = getCollection();
+    assert mongoCollection != null : "collection is null";
     if (updateOptions != null) {
-      return collection.updateMany(filter, update, updateOptions);
+      return mongoCollection.updateMany(filter, update, updateOptions);
     } else {
-      return collection.updateMany(filter, update);
+      return mongoCollection.updateMany(filter, update);
     }
   }
 
   public long delete(String whereColumn, String whereValue) {
-    MongoCollection<Document> collection = getCollection();
-    DeleteResult result = collection.deleteOne(Filters.eq(whereColumn, whereValue));
-    return result.getDeletedCount();
-  }
+    MongoCollection<Document> mongoCollection = getCollection();
+    DeleteResult result = mongoCollection.deleteOne(Filters.eq(whereColumn, whereValue));
+      return result.getDeletedCount();
+    }
 
   public DeleteResult deleteMany(Bson filter) {
-    MongoCollection<Document> collection = getCollection();
-    return collection.deleteMany(filter);
+    MongoCollection<Document> mongoCollection = getCollection();
+    return mongoCollection.deleteMany(filter);
   }
 
   /**
    * replace the new document
-   *
-   * @param filter
-   * @param replacement
    */
   public void replace(Bson filter, Document replacement) {
-    MongoCollection<Document> collection = getCollection();
-    collection.replaceOne(filter, replacement);
+    MongoCollection<Document> mongoCollection = getCollection();
+    mongoCollection.replaceOne(filter, replacement);
   }
 
   public List<Document> queryByCondition(Bson filter) {
-    MongoCollection<Document> collection = getCollection();
+    MongoCollection<Document> mongoCollection = getCollection();
     List<Document> documents = new ArrayList<Document>();
-    FindIterable<Document> iterables = collection.find(filter);
+    FindIterable<Document> iterables = mongoCollection.find(filter);
     MongoCursor<Document> mongoCursor = iterables.iterator();
     while (mongoCursor.hasNext()) {
       documents.add(mongoCursor.next());
@@ -125,8 +130,8 @@ public abstract class MongoTemplate {
   }
 
   public List<Document> queryAll() {
-    MongoCollection<Document> collection = getCollection();
-    FindIterable<Document> findIterable = collection.find();
+    MongoCollection<Document> mongoCollection = getCollection();
+    FindIterable<Document> findIterable = mongoCollection.find();
     MongoCursor<Document> mongoCursor = findIterable.iterator();
     List<Document> documents = new ArrayList<Document>();
     while (mongoCursor.hasNext()) {
@@ -136,20 +141,17 @@ public abstract class MongoTemplate {
   }
 
   public <T> List<T> queryAllEntity() {
-    MongoCollection<Document> collection = getCollection();
-    FindIterable<Document> findIterable = collection.find();
+    MongoCollection<Document> mongoCollection = getCollection();
+    FindIterable<Document> findIterable = mongoCollection.find();
     List<T> list = getEntityList(findIterable);
     return list;
   }
 
   public <T> Pager<T> queryPagerList(Bson filter, int pageIndex, int pageSize) {
-    MongoCollection<Document> collection = getCollection();
-    long totalCount = collection.count(filter);
+    MongoCollection<Document> mongoCollection = getCollection();
+    long totalCount = mongoCollection.countDocuments(filter);
     FindIterable<Document> findIterable =
-        collection
-            .find()
-            .skip((pageIndex - 1) * pageSize)
-            .sort(new BasicDBObject())
+        mongoCollection.find().skip((pageIndex - 1) * pageSize).sort(new BasicDBObject())
             .limit(pageSize);
     List<T> resultList = getEntityList(findIterable);
     Pager<T> pager = new Pager<T>(resultList, totalCount, pageIndex, pageSize);

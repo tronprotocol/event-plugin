@@ -6,22 +6,30 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
-import com.mongodb.util.JSON;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.bson.Document;
 import org.pf4j.util.StringUtils;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.pf4j.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
@@ -29,10 +37,10 @@ import org.tron.mongodb.MongoTemplate;
 public class MongodbSenderImpl {
   private static MongodbSenderImpl instance = null;
   private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
-  ExecutorService service = Executors.newFixedThreadPool(8);
+  private ExecutorService service = Executors.newFixedThreadPool(8);
 
   private boolean loaded = false;
-  private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue();
+  private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue<>();
   private Map<String, LinkedHashMap<String, JSONObject>> contractLogTriggersMap = new HashMap<>();
 
   private String blockTopic = "";
@@ -49,6 +57,9 @@ public class MongodbSenderImpl {
 
   private final String contractLogRevertCollectionFormat = "log_filter_revert_%s";
 
+  private String solidityEventTopic = "";
+  private String solidityLogTopic = "";
+
   private Thread triggerProcessThread;
   private boolean isRunTriggerProcessThread = true;
 
@@ -58,6 +69,7 @@ public class MongodbSenderImpl {
   private String dbName;
   private String dbUserName;
   private String dbPassword;
+  private int version; // 1: no index, 2: has index
 
   private MongoConfig mongoConfig;
 
@@ -79,13 +91,18 @@ public class MongodbSenderImpl {
     }
 
     String[] params = dbConfig.split("\\|");
-    if (params.length != 3) {
+    if (params.length != 3 && params.length != 4) {
       return;
     }
 
     dbName = params[0];
     dbUserName = params[1];
     dbPassword = params[2];
+    version = 1;
+
+    if (params.length == 4) {
+      version = Integer.valueOf(params[3]);
+    }
 
     loadMongoConfig();
   }
@@ -166,13 +183,13 @@ public class MongodbSenderImpl {
       properties.load(input);
 
       int connectionsPerHost = Integer.parseInt(properties.getProperty("mongo.connectionsPerHost"));
-      int threadsAllowedToBlockForConnectionMultiplie =
-          Integer.parseInt(
-              properties.getProperty("mongo.threadsAllowedToBlockForConnectionMultiplier"));
+      int threadsAllowedToBlockForConnectionMultiplie = Integer.parseInt(
+          properties.getProperty("mongo.threadsAllowedToBlockForConnectionMultiplier"));
 
       mongoConfig.setDbName(dbName);
       mongoConfig.setUsername(dbUserName);
       mongoConfig.setPassword(dbPassword);
+      mongoConfig.setVersion(version);
       mongoConfig.setConnectionsPerHost(connectionsPerHost);
       mongoConfig.setThreadsAllowedToBlockForConnectionMultiplier(
           threadsAllowedToBlockForConnectionMultiplie);
@@ -190,23 +207,23 @@ public class MongodbSenderImpl {
       return template;
     }
 
-    template =
-        new MongoTemplate(mongoManager) {
-          @Override
-          protected String collectionName() {
-            return collectionName;
-          }
+    template = new MongoTemplate(mongoManager) {
+      @Override
+      protected String collectionName() {
+        return collectionName;
+      }
 
-          @Override
-          protected <T> Class<T> getReferencedClass() {
-            return null;
-          }
-        };
+      @Override
+      protected <T> Class<T> getReferencedClass() {
+        return null;
+      }
+    };
 
     mongoTemplateMap.put(collectionName, template);
 
     return template;
   }
+
 
   public void setTopic(int triggerType, String topic) {
     if (triggerType == Constant.BLOCK_TRIGGER) {
@@ -219,16 +236,52 @@ public class MongodbSenderImpl {
       contractLogTopic = topic;
     } else if (triggerType == Constant.SOLIDITY_TRIGGER) {
       solidityTopic = topic;
+    } else if (triggerType == Constant.SOLIDITY_EVENT_TRIGGER) {
+      solidityEventTopic = topic;
+    } else if (triggerType == Constant.SOLIDITY_LOG_TRIGGER) {
+      solidityLogTopic = topic;
     } else {
       return;
     }
   }
 
-  public void close() {}
+  public void close() {
+  }
 
   public BlockingQueue<Object> getTriggerQueue() {
     return triggerQueue;
   }
+
+  public void upsertEntityLong(MongoTemplate template, Object data, String indexKey) {
+    String dataStr = (String) data;
+    try {
+      JSONObject jsStr = JSON.parseObject(dataStr);
+      Long indexValue = jsStr.getLong(indexKey);
+      if (indexValue != null) {
+        template.upsertEntity(indexKey, indexValue, dataStr);
+      } else {
+        template.addEntity(dataStr);
+      }
+    } catch (Exception ex) {
+      log.error("upsertEntityLong exception happened in parse object ", ex);
+    }
+  }
+
+  public void upsertEntityString(MongoTemplate template, Object data, String indexKey) {
+    String dataStr = (String) data;
+    try {
+      JSONObject jsStr = JSON.parseObject(dataStr);
+      String indexValue = jsStr.getString(indexKey);
+      if (indexValue != null) {
+        template.upsertEntity(indexKey, indexValue, dataStr);
+      } else {
+        template.addEntity(dataStr);
+      }
+    } catch (Exception ex) {
+      log.error("upsertEntityLong exception happened in parse object ", ex);
+    }
+  }
+
 
   public void handleBlockEvent(Object data) {
     if (blockTopic == null || blockTopic.length() == 0) {
@@ -308,9 +361,17 @@ public class MongodbSenderImpl {
     MongoTemplate template = mongoTemplateMap.get(filterCollection);
     if (Objects.nonNull(template)) {
       List<Document> filters = template.queryByCondition(Filters.exists("disable", false));
-      return JSON.serialize(filters);
+      return com.mongodb.util.JSON.serialize(filters);
     }
     return null;
+  }
+
+  public void handleInsertContractTrigger(MongoTemplate template, Object data, String indexKey) {
+    if (mongoConfig.enabledIndexes()) {
+      upsertEntityString(template, data, indexKey);
+    } else {
+      template.addEntity((String) data);
+    }
   }
 
   private Runnable triggerProcessLoop =

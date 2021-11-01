@@ -1,3 +1,14 @@
-.idea
-.gradle
-**/build
+build
+/.idea/
+/.gradle/
+/lib/
+.settings/
+build/
+.classpath
+.project
+.DS_Store
+*/build
+*/logs/
+*.log
+/logs
+out/
