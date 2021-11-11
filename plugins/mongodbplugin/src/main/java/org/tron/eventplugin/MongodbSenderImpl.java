@@ -2,9 +2,11 @@ package org.tron.eventplugin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.mongodb.client.model.Filters;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -13,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import org.bson.Document;
 import org.pf4j.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,8 @@ public class MongodbSenderImpl {
   private String solidityTopic = "";
   private String solidityEventTopic = "";
   private String solidityLogTopic = "";
+
+  private final String filterCollection = "filters";
 
   private Thread triggerProcessThread;
   private boolean isRunTriggerProcessThread = true;
@@ -157,6 +162,10 @@ public class MongodbSenderImpl {
       indexOptions.put("contractAddress", false);
       mongoManager.createCollection(solidityLogTopic, indexOptions);
       mongoManager.createCollection(contractLogTopic, indexOptions);
+
+      indexOptions = new HashMap<>();
+      indexOptions.put("name", true);
+      mongoManager.createCollection(filterCollection, indexOptions);
     } else {
       mongoManager.createCollection(blockTopic);
       mongoManager.createCollection(transactionTopic);
@@ -165,6 +174,7 @@ public class MongodbSenderImpl {
       mongoManager.createCollection(solidityTopic);
       mongoManager.createCollection(solidityEventTopic);
       mongoManager.createCollection(solidityLogTopic);
+      mongoManager.createCollection(filterCollection);
     }
 
     createMongoTemplate(blockTopic);
@@ -174,6 +184,7 @@ public class MongodbSenderImpl {
     createMongoTemplate(solidityTopic);
     createMongoTemplate(solidityEventTopic);
     createMongoTemplate(solidityLogTopic);
+    createMongoTemplate(filterCollection);
   }
 
   private void loadMongoConfig() {
@@ -475,4 +486,14 @@ public class MongodbSenderImpl {
           }
         }
       };
+
+    public String getEventFilterList(){
+        MongoTemplate template = mongoTemplateMap.get(filterCollection);
+        if (Objects.nonNull(template)) {
+          List<Document> filters = template.queryByCondition(Filters.exists("disable", false));
+          return com.mongodb.util.JSON.serialize(filters);
+        }
+        return null;
+    }
+
 }
