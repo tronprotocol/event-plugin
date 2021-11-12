@@ -105,4 +105,13 @@ public class MongodbEventListener implements IPluginEventListener {
     public String getEventFilterList() {
         return MongodbSenderImpl.getInstance().getEventFilterList();
     }
+
+    @Override
+    public void handleBlockContractLogTrigger(Object data) {
+        if (Objects.isNull(data)){
+            return;
+        }
+
+        MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
+    }
 }

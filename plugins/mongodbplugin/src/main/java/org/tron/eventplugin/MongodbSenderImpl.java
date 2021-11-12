@@ -39,6 +39,7 @@ public class MongodbSenderImpl {
   private String solidityTopic = "";
   private String solidityEventTopic = "";
   private String solidityLogTopic = "";
+  private String blockContractLogTopic = "";
 
   private final String filterCollection = "filters";
 
@@ -166,6 +167,12 @@ public class MongodbSenderImpl {
       indexOptions = new HashMap<>();
       indexOptions.put("name", true);
       mongoManager.createCollection(filterCollection, indexOptions);
+
+      indexOptions = new HashMap<>();
+      indexOptions.put("blockNumber", false);
+      indexOptions.put("blockHash", true);
+      mongoManager.createCollection(blockContractLogTopic, indexOptions);
+
     } else {
       mongoManager.createCollection(blockTopic);
       mongoManager.createCollection(transactionTopic);
@@ -175,6 +182,7 @@ public class MongodbSenderImpl {
       mongoManager.createCollection(solidityEventTopic);
       mongoManager.createCollection(solidityLogTopic);
       mongoManager.createCollection(filterCollection);
+      mongoManager.createCollection(blockContractLogTopic);
     }
 
     createMongoTemplate(blockTopic);
@@ -185,6 +193,7 @@ public class MongodbSenderImpl {
     createMongoTemplate(solidityEventTopic);
     createMongoTemplate(solidityLogTopic);
     createMongoTemplate(filterCollection);
+    createMongoTemplate(blockContractLogTopic);
   }
 
   private void loadMongoConfig() {
@@ -263,6 +272,8 @@ public class MongodbSenderImpl {
       solidityEventTopic = topic;
     } else if (triggerType == Constant.SOLIDITY_LOG_TRIGGER) {
       solidityLogTopic = topic;
+    } else if (triggerType == Constant.BLOCK_CONTRACTLOG_TRIGGER) {
+      blockContractLogTopic = topic;
     } else {
       return;
     }
@@ -451,6 +462,22 @@ public class MongodbSenderImpl {
     }
   }
 
+  public void handleBlockContractLogTrigger(Object data) {
+    if (Objects.isNull(data) || Objects.isNull(blockContractLogTopic)) {
+      return;
+    }
+
+    MongoTemplate template = mongoTemplateMap.get(blockContractLogTopic);
+    if (Objects.nonNull(template)) {
+      service.execute(new Runnable() {
+        @Override
+        public void run() {
+          template.addEntity((String) data);
+        }
+      });
+    }
+  }
+
   private Runnable triggerProcessLoop =
       () -> {
         while (isRunTriggerProcessThread) {
@@ -475,6 +502,8 @@ public class MongodbSenderImpl {
               handleSolidityLogTrigger(triggerData);
             } else if (triggerData.contains(Constant.SOLIDITYEVENT_TRIGGER_NAME)) {
               handleSolidityEventTrigger(triggerData);
+            } else if (triggerData.contains(Constant.BLOCK_CONTRACTLOG_TRIGGER_NAME)) {
+              handleBlockContractLogTrigger(triggerData);
             }
           } catch (InterruptedException ex) {
             log.info(ex.getMessage());

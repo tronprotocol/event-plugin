@@ -28,4 +28,5 @@ public interface IPluginEventListener extends ExtensionPoint {
 
     String getEventFilterList();
 
+    void handleBlockContractLogTrigger(Object trigger);
 }

@@ -105,4 +105,13 @@ public class KafkaEventListener implements IPluginEventListener {
     public String getEventFilterList() {
         return null;
     }
+
+    @Override
+    public void handleBlockContractLogTrigger(Object data) {
+        if (Objects.isNull(data)){
+            return;
+        }
+
+        MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    }
 }
