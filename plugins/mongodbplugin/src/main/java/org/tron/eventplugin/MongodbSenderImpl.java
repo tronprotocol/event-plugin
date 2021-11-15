@@ -170,7 +170,6 @@ public class MongodbSenderImpl {
 
       indexOptions = new HashMap<>();
       indexOptions.put("blockNumber", false);
-      indexOptions.put("blockHash", true);
       mongoManager.createCollection(blockContractLogTopic, indexOptions);
 
     } else {
@@ -469,12 +468,20 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(blockContractLogTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          template.addEntity((String) data);
-        }
-      });
+      JSONObject trigger = JSONObject.parseObject((String) data);
+      String blockHash = trigger.getString("blockHash");
+      long blockNumber = trigger.getLong("blockNumber");
+
+      List<Document> exists = template.queryByCondition(Filters.and(
+          Filters.eq("blockNumber", blockNumber),
+          Filters.eq("blockHash", blockHash)));
+      if(exists == null || exists.isEmpty()) {
+        template.addEntity((String) data);
+      } else {
+        Object transactionList = trigger.get("transactionList");
+        // update exist transactions in mongo
+        template.update("transactionList", transactionList, "blockHash", blockHash);
+      }
     }
   }
 
