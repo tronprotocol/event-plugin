@@ -52,10 +52,17 @@ public class MongoManager {
   }
 
   public void createCollection(String collectionName) {
-    if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
-      if (Objects.isNull(db.getCollection(collectionName))){
-        db.createCollection(collectionName);
+    try{
+      if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
+        if (Objects.isNull(db.getCollection(collectionName))){
+          db.createCollection(collectionName);
+          log.info("createCollection {} success", collectionName);
+        } else {
+          log.info("Collection exist {}", collectionName);
+        }
       }
+    } catch (Exception e){
+      log.error("createCollection {} error", collectionName, e);
     }
   }
 
