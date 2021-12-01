@@ -495,7 +495,9 @@ public class MongodbSenderImpl {
               continue;
             }
 
-            if (triggerData.contains(Constant.BLOCK_TRIGGER_NAME)) {
+            if (triggerData.contains(Constant.BLOCK_CONTRACTLOG_TRIGGER_NAME)) {
+              handleBlockContractLogTrigger(triggerData);
+            } else if (triggerData.contains(Constant.BLOCK_TRIGGER_NAME)) {
               handleBlockEvent(triggerData);
             } else if (triggerData.contains(Constant.TRANSACTION_TRIGGER_NAME)) {
               handleTransactionTrigger(triggerData);
@@ -509,8 +511,6 @@ public class MongodbSenderImpl {
               handleSolidityLogTrigger(triggerData);
             } else if (triggerData.contains(Constant.SOLIDITYEVENT_TRIGGER_NAME)) {
               handleSolidityEventTrigger(triggerData);
-            } else if (triggerData.contains(Constant.BLOCK_CONTRACTLOG_TRIGGER_NAME)) {
-              handleBlockContractLogTrigger(triggerData);
             }
           } catch (InterruptedException ex) {
             log.info(ex.getMessage());
