@@ -60,8 +60,8 @@ public class MessageSenderImpl{
         createProducer(Constant.CONTRACTLOG_TRIGGER);
         createProducer(Constant.CONTRACTEVENT_TRIGGER);
         createProducer(Constant.SOLIDITY_TRIGGER);
-        createProducer(Constant.SOLIDITY_EVENT);
-        createProducer(Constant.SOLIDITY_LOG);
+        createProducer(Constant.SOLIDITY_EVENT_TRIGGER);
+        createProducer(Constant.SOLIDITY_LOG_TRIGGER);
 
         triggerProcessThread = new Thread(triggerProcessLoop);
         triggerProcessThread.start();
@@ -80,9 +80,9 @@ public class MessageSenderImpl{
             contractLogTopic = topic;
         } else if (triggerType == Constant.SOLIDITY_TRIGGER) {
             solidityTopic = topic;
-        } else if (triggerType == Constant.SOLIDITY_EVENT) {
+        } else if (triggerType == Constant.SOLIDITY_EVENT_TRIGGER) {
             solidityEventTopic = topic;
-        } else if (triggerType == Constant.SOLIDITY_LOG) {
+        } else if (triggerType == Constant.SOLIDITY_LOG_TRIGGER) {
             solidityLogTopic = topic;
         }
     }
@@ -194,13 +194,13 @@ public class MessageSenderImpl{
         if (Objects.isNull(data) || Objects.isNull(solidityLogTopic)){
             return;
         }
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_LOG, solidityLogTopic, data);
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_LOG_TRIGGER, solidityLogTopic, data);
     }
     public void handleSolidityEventTrigger(Object data) {
         if (Objects.isNull(data) || Objects.isNull(solidityEventTopic)){
             return;
         }
-        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_EVENT, solidityEventTopic, data);
+        MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_EVENT_TRIGGER, solidityEventTopic, data);
     }
 
     private Runnable triggerProcessLoop =
