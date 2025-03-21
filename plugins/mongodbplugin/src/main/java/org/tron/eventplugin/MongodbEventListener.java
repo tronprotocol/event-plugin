@@ -100,4 +100,10 @@ public class MongodbEventListener implements IPluginEventListener {
 
         MongodbSenderImpl.getInstance().getTriggerQueue().offer(data);
     }
+
+    @Override
+    public int getPendingSize() {
+        return MongodbSenderImpl.getInstance().getTriggerQueue().size()
+          + MongodbSenderImpl.getInstance().getQueue().size();
+    }
 }
