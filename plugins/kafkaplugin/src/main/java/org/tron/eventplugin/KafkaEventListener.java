@@ -84,6 +84,11 @@ public class KafkaEventListener implements IPluginEventListener {
     }
 
     @Override
+    public int getPendingSize() {
+        return MessageSenderImpl.getInstance().getTriggerQueue().size();
+    }
+
+    @Override
     public void handleContractLogTrigger(Object data) {
         if (Objects.isNull(data)){
             return;

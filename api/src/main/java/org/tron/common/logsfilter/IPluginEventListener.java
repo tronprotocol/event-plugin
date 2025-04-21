@@ -26,4 +26,5 @@ public interface IPluginEventListener extends ExtensionPoint {
 
     void handleSolidityEventTrigger(Object trigger);
 
+    int getPendingSize();
 }
