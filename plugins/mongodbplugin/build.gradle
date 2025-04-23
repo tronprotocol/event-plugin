@@ -2,7 +2,7 @@ dependencies {
   // compileOnly important!!! We do not want to put the api into the zip file since the main program has it already!
   compileOnly project(':api')
 
-  compileOnly group: 'com.alibaba', name: 'fastjson', version: '1.2.78'
+  compileOnly group: 'com.alibaba', name: 'fastjson', version: '1.2.83'
   compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.3'
   compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.18.3'
 
