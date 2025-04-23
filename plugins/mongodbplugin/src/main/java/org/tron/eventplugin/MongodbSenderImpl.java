@@ -8,11 +8,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import lombok.Getter;
 import org.pf4j.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +28,10 @@ public class MongodbSenderImpl {
 
   private static MongodbSenderImpl instance = null;
   private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
-  private ExecutorService service = Executors.newFixedThreadPool(8);
+  @Getter
+  BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+  private ExecutorService service = new ThreadPoolExecutor(8, 8,
+    0L, TimeUnit.MILLISECONDS, queue);
 
   private boolean loaded = false;
   private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue<>();
