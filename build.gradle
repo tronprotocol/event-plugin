@@ -10,7 +10,7 @@ subprojects {
     compileOnly group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
     compileOnly 'org.projectlombok:lombok:1.18.12'
     compileOnly group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}"
-    compileOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    compileOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.13'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}"
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
