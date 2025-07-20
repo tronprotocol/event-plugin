@@ -38,6 +38,10 @@ public class BlockLogTrigger extends Trigger {
 
   @Getter
   @Setter
+  private String parentHash;
+
+  @Getter
+  @Setter
   Map<String, Long> witnessMap = new HashMap<>();
 
   public BlockLogTrigger() {
@@ -63,6 +67,8 @@ public class BlockLogTrigger extends Trigger {
       .append(witnessPayPerBlock)
       .append(", witnessMap: ")
       .append(witnessMap)
+      .append(", parentHash: ")
+      .append(parentHash)
       .toString();
   }
 }
