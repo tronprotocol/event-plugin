@@ -22,6 +22,10 @@ public class BlockLogTrigger extends Trigger {
 
   @Getter
   @Setter
+  private long latestSolidifiedBlockNumber;
+
+  @Getter
+  @Setter
   private List<String> transactionList = new ArrayList<>();
 
 
@@ -47,7 +51,7 @@ public class BlockLogTrigger extends Trigger {
   @Override
   public String toString() {
     return new StringBuilder().append("triggerName: ").append(getTriggerName())
-      .append("timestamp: ")
+      .append(", timestamp: ")
       .append(timeStamp)
       .append(", blockNumber: ")
       .append(blockNumber)
@@ -55,6 +59,8 @@ public class BlockLogTrigger extends Trigger {
       .append(blockHash)
       .append(", transactionSize: ")
       .append(transactionSize)
+      .append(", latestSolidifiedBlockNumber: ")
+      .append(latestSolidifiedBlockNumber)
       .append(", transactionList: ")
       .append(transactionList)
       .append(", witnessAddress: ")
