@@ -25,4 +25,6 @@ public class Trigger {
   public static final String CONTRACTLOG_TRIGGER_NAME = "contractLogTrigger";
   public static final String CONTRACTEVENT_TRIGGER_NAME = "contractEventTrigger";
   public static final String SOLIDITY_TRIGGER_NAME = "solidityTrigger";
+  public static final String SOLIDITY_EVENT_NAME = "solidityEventTrigger";
+  public static final String SOLIDITY_LOG_NAME = "solidityLogTrigger";
 }
