@@ -11,13 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.util.StringUtils;
 
 @Slf4j
 public class MongoManager {
 
+  @Setter
+  @Getter
   private MongoClient mongo;
+  @Setter
+  @Getter
   private MongoDatabase db;
 
   public void initConfig(MongoConfig config) {
@@ -31,7 +37,7 @@ public class MongoManager {
     String host = config.getHost();
     int port = config.getPort();
     ServerAddress serverAddress = new ServerAddress(host, port);
-    List<ServerAddress> addrs = new ArrayList<ServerAddress>();
+    List<ServerAddress> addrs = new ArrayList<>();
     addrs.add(serverAddress);
 
     String username = config.getUsername();
@@ -44,8 +50,8 @@ public class MongoManager {
 
     MongoCredential credential = MongoCredential.createScramSha1Credential(username, databaseName,
         password.toCharArray());
-    List<MongoCredential> credentials = new ArrayList<MongoCredential>();
-    credentials.add(credential);
+    //List<MongoCredential> credentials = new ArrayList<>();
+    //credentials.add(credential);
 
     mongo = new MongoClient(addrs, credential, options);
     db = mongo.getDatabase(databaseName);
@@ -53,7 +59,7 @@ public class MongoManager {
 
   public void createCollection(String collectionName) {
     if (db != null && StringUtils.isNotNullOrEmpty(collectionName)) {
-      if (Objects.isNull(db.getCollection(collectionName))){
+      if (Objects.isNull(db.getCollection(collectionName))) {
         db.createCollection(collectionName);
       }
     }
@@ -83,21 +89,4 @@ public class MongoManager {
       }
     }
   }
-
-  public MongoClient getMongo() {
-    return mongo;
-  }
-
-  public void setMongo(MongoClient mongo) {
-    this.mongo = mongo;
-  }
-
-  public MongoDatabase getDb() {
-    return db;
-  }
-
-  public void setDb(MongoDatabase db) {
-    this.db = db;
-  }
-
 }

@@ -3,28 +3,29 @@ package org.tron.common.logsfilter;
 import org.pf4j.ExtensionPoint;
 
 public interface IPluginEventListener extends ExtensionPoint {
-    void setServerAddress(String address);
 
-    void setTopic(int eventType, String topic);
+  void setServerAddress(String address);
 
-    void setDBConfig(String dbConfig);
+  void setTopic(int eventType, String topic);
 
-    // start should be called after setServerAddress, setTopic, setDBConfig
-    void start();
+  void setDBConfig(String dbConfig);
 
-    void handleBlockEvent(Object data);
+  // start should be called after setServerAddress, setTopic, setDBConfig
+  void start();
 
-    void handleTransactionTrigger(Object data);
+  void handleBlockEvent(Object data);
 
-    void handleContractLogTrigger(Object data);
+  void handleTransactionTrigger(Object data);
 
-    void handleContractEventTrigger(Object data);
+  void handleContractLogTrigger(Object data);
 
-    void handleSolidityTrigger(Object trigger);
+  void handleContractEventTrigger(Object data);
 
-    void handleSolidityLogTrigger(Object trigger);
+  void handleSolidityTrigger(Object trigger);
 
-    void handleSolidityEventTrigger(Object trigger);
+  void handleSolidityLogTrigger(Object trigger);
 
-    int getPendingSize();
+  void handleSolidityEventTrigger(Object trigger);
+
+  int getPendingSize();
 }

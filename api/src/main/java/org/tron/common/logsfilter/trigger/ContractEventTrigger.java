@@ -37,7 +37,6 @@ public class ContractEventTrigger extends ContractTrigger {
   @Setter
   private Map<String, String> dataMap;
 
-
   public ContractEventTrigger() {
     super();
     setTriggerName(Trigger.CONTRACTEVENT_TRIGGER_NAME);

@@ -13,97 +13,97 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.tron.eventplugin.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
 import org.pf4j.CompoundPluginDescriptorFinder;
+import org.pf4j.DefaultPluginManager;
 import org.pf4j.ManifestPluginDescriptorFinder;
+import org.pf4j.PluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.pf4j.DefaultPluginManager;
-import org.pf4j.PluginManager;
 import org.tron.common.logsfilter.IPluginEventListener;
 import org.tron.common.logsfilter.trigger.BlockLogTrigger;
 import org.tron.common.logsfilter.trigger.Trigger;
 
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-
 public class PluginLauncher {
-    private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
-    public static void main(String[] args) {
-        String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
+  private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
-        File dir = new File(path);
-        // create the plugin manager
-        final PluginManager pluginManager = new DefaultPluginManager(dir.toPath()) {
-            @Override
-            protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
-                return new CompoundPluginDescriptorFinder()
-                    .add(new ManifestPluginDescriptorFinder());
-            }
-        };
+  public static void main(String[] args) {
+    String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
 
-        File file = new File(path);
+    File dir = new File(path);
+    // create the plugin manager
+    final PluginManager pluginManager = new DefaultPluginManager(dir.toPath()) {
+      @Override
+      protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
+        return new CompoundPluginDescriptorFinder()
+            .add(new ManifestPluginDescriptorFinder());
+      }
+    };
 
-        pluginManager.loadPlugin(file.toPath());
-        pluginManager.startPlugins();
+    File file = new File(path);
 
-        List<IPluginEventListener> eventListeners;
-        eventListeners = pluginManager.getExtensions(IPluginEventListener.class);
+    pluginManager.loadPlugin(file.toPath());
+    pluginManager.startPlugins();
 
-        if (Objects.isNull(eventListeners)) return;
+    List<IPluginEventListener> eventListeners;
+    eventListeners = pluginManager.getExtensions(IPluginEventListener.class);
 
-        eventListeners.forEach(listener -> {
-            listener.setServerAddress("127.0.0.1:27017");
-        });
-
-        eventListeners.forEach(listener -> {
-            listener.setDBConfig("eventlog|tron|123456");
-        });
-
-        eventListeners.forEach(listener -> {
-            listener.setTopic(Trigger.BLOCK_TRIGGER, "block");
-            listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
-            listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
-            listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
-            listener.setTopic(Trigger.SOLIDITY_TRIGGER, "solidity");
-            listener.setTopic(Trigger.SOLIDITY_EVENT, "solidityevent");
-            listener.setTopic(Trigger.SOLIDITY_LOG, "soliditylog");
-
-        });
-
-        eventListeners.forEach(listener -> {
-            listener.start();
-        });
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        for (int index = 0; index < 1000; ++index){
-            BlockLogTrigger trigger = new BlockLogTrigger();
-            trigger.setBlockNumber(index);
-            trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");
-            trigger.setTimeStamp(System.currentTimeMillis());
-            trigger.setTransactionSize(100);
-
-            eventListeners.forEach(listener -> {
-                try {
-                    listener.handleBlockEvent(objectMapper.writeValueAsString(trigger));
-                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        while (true){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //pluginManager.stopPlugins();
+    if (Objects.isNull(eventListeners)) {
+      return;
     }
+
+    eventListeners.forEach(listener -> {
+      listener.setServerAddress("127.0.0.1:27017");
+    });
+
+    eventListeners.forEach(listener -> {
+      listener.setDBConfig("eventlog|tron|123456");
+    });
+
+    eventListeners.forEach(listener -> {
+      listener.setTopic(Trigger.BLOCK_TRIGGER, "block");
+      listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
+      listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
+      listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
+      listener.setTopic(Trigger.SOLIDITY_TRIGGER, "solidity");
+      listener.setTopic(Trigger.SOLIDITY_EVENT, "solidityevent");
+      listener.setTopic(Trigger.SOLIDITY_LOG, "soliditylog");
+    });
+
+    eventListeners.forEach(IPluginEventListener::start);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    for (int index = 0; index < 1000; ++index) {
+      BlockLogTrigger trigger = new BlockLogTrigger();
+      trigger.setBlockNumber(index);
+      trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");
+      trigger.setTimeStamp(System.currentTimeMillis());
+      trigger.setTransactionSize(100);
+
+      eventListeners.forEach(listener -> {
+        try {
+          listener.handleBlockEvent(objectMapper.writeValueAsString(trigger));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+          e.printStackTrace();
+        }
+      });
+    }
+
+    while (true) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+
+    //pluginManager.stopPlugins();
+  }
 }

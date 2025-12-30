@@ -1,24 +1,29 @@
 package org.tron.mongodb;
 
-import com.mongodb.client.model.ReplaceOptions;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.tron.mongodb.util.Converter;
 import org.tron.mongodb.util.Pager;
 
+@Slf4j
 public abstract class MongoTemplate {
 
+  @Setter
+  @Getter
   private MongoManager manager;
   private MongoCollection<Document> collection = null;
 
@@ -152,18 +157,10 @@ public abstract class MongoTemplate {
     return pager;
   }
 
-  public MongoManager getManager() {
-    return manager;
-  }
-
-  public void setManager(MongoManager manager) {
-    this.manager = manager;
-  }
-
   private <T> List<T> getEntityList(FindIterable<Document> findIterable) {
     MongoCursor<Document> mongoCursor = findIterable.iterator();
     List<T> list = new ArrayList<T>();
-    Document document = null;
+    Document document;
     while (mongoCursor.hasNext()) {
       document = mongoCursor.next();
       T object;
@@ -171,7 +168,7 @@ public abstract class MongoTemplate {
         object = Converter.jsonStringToObject(document.toJson(), getReferencedClass());
         list.add(object);
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error("getEntityList failed", e);
       }
     }
     return list;
@@ -181,12 +178,9 @@ public abstract class MongoTemplate {
     if (Objects.isNull(manager) || Objects.isNull(manager.getDb())) {
       return null;
     }
-
     if (Objects.isNull(collection)) {
       collection = manager.getDb().getCollection(collectionName());
     }
-
     return collection;
   }
-
 }
