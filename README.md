@@ -7,7 +7,7 @@ This is an implementation of Tron eventsubscribe model.
 * **kafkaplugin** module is the implementation for kafka, it implements IPluginEventListener, it receives events subscribed from Java-tron and relay events to kafka server. 
 * **mongodbplugin** mongodbplugin module is the implementation for mongodb. 
 ### Setup/Build
-
+Eventplugin can be built with JDK 8 or JDK17.
 1. Clone the repo
 2. Go to eventplugin `cd eventplugin` 
 3. run `./gradlew build`
@@ -20,7 +20,11 @@ This is an implementation of Tron eventsubscribe model.
 event.subscribe = {
     path = "" // absolute path of plugin
     server = "" // target server address to receive event triggers
-    dbconfig = "" // dbname|username|password, if you want to create indexes for collections when the collections are not exist, you can add version and set it to 2, as dbname|username|password|version
+    # dbname|username|password, if you want to create indexes for collections when the collections
+    # are not exist, you can add version and set it to 2, as dbname|username|password|version
+    # if you use version 2 and one collection not exists, it will create index automaticaly;
+    # if you use version 2 and one collection exists, it will not create index, you must create index manually;
+    dbconfig = ""
     topics = [
         {
           triggerName = "block" // block trigger, the value can't be modified

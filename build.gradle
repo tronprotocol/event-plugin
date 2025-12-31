@@ -8,13 +8,13 @@ subprojects {
 
   dependencies {
     compileOnly group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
-    compileOnly 'org.projectlombok:lombok:1.18.12'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
     compileOnly group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}"
     compileOnly group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.13'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
     annotationProcessor group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}"
-    testCompileOnly 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}"
     compileOnly group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compileOnly group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.25'
