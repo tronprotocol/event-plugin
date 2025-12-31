@@ -38,8 +38,8 @@ public class Pager<T> implements Serializable {
 		int start = (currentPage - 1) * pageSize;
 		int offset = pageSize;
 
-		hs.put("start", new Integer(start));
-		hs.put("offset", new Integer(offset));
+		hs.put("start", start);
+		hs.put("offset", offset);
 	}
 
 	public Pager() {
