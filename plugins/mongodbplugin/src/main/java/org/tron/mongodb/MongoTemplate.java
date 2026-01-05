@@ -19,7 +19,7 @@ import org.bson.conversions.Bson;
 import org.tron.mongodb.util.Converter;
 import org.tron.mongodb.util.Pager;
 
-@Slf4j
+@Slf4j(topic = "event")
 public abstract class MongoTemplate {
 
   @Setter

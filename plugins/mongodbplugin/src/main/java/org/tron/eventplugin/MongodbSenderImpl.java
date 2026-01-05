@@ -19,7 +19,7 @@ import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
 
-@Slf4j
+@Slf4j(topic = "event")
 public class MongodbSenderImpl {
 
   private static MongodbSenderImpl instance = null;

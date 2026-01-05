@@ -16,7 +16,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.util.StringUtils;
 
-@Slf4j
+@Slf4j(topic = "event")
 public class MongoManager {
 
   @Setter
