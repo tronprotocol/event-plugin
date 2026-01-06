@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class BlockLogTrigger extends Trigger {
+
   @Getter
   @Setter
   private long blockNumber;
@@ -23,7 +24,6 @@ public class BlockLogTrigger extends Trigger {
   @Getter
   @Setter
   private List<String> transactionList = new ArrayList<>();
-
 
   /**
    * address of witness
@@ -46,23 +46,14 @@ public class BlockLogTrigger extends Trigger {
 
   @Override
   public String toString() {
-    return new StringBuilder().append("triggerName: ").append(getTriggerName())
-      .append("timestamp: ")
-      .append(timeStamp)
-      .append(", blockNumber: ")
-      .append(blockNumber)
-      .append(", blockhash: ")
-      .append(blockHash)
-      .append(", transactionSize: ")
-      .append(transactionSize)
-      .append(", transactionList: ")
-      .append(transactionList)
-      .append(", witnessAddress: ")
-      .append(witnessAddress)
-      .append(", witnessPayPerBlock: ")
-      .append(witnessPayPerBlock)
-      .append(", witnessMap: ")
-      .append(witnessMap)
-      .toString();
+    return "triggerName: " + getTriggerName()
+        + ", timestamp: " + timeStamp
+        + ", blockNumber: " + blockNumber
+        + ", blockhash: " + blockHash
+        + ", transactionSize: " + transactionSize
+        + ", transactionList: " + transactionList
+        + ", witnessAddress: " + witnessAddress
+        + ", witnessPayPerBlock: " + witnessPayPerBlock
+        + ", witnessMap: " + witnessMap;
   }
 }

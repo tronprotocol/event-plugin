@@ -1,5 +1,10 @@
 package org.tron.mongodb;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class MongoConfig {
 
   private String host;
@@ -11,74 +16,7 @@ public class MongoConfig {
   private int connectionsPerHost = 10;
   private int threadsAllowedToBlockForConnectionMultiplier = 10;
 
-  public String getHost() {
-    return host;
-  }
-
-  public void setHost(String host) {
-    this.host = host;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
-  }
-
-  public String getDbName() {
-    return dbName;
-  }
-
-  public void setDbName(String dbName) {
-    this.dbName = dbName;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public int getVersion() {
-    return version;
-  }
-
-  public void setVersion(int version) {
-    this.version = version;
-  }
-
-  public int getConnectionsPerHost() {
-    return connectionsPerHost;
-  }
-
-  public void setConnectionsPerHost(int connectionsPerHost) {
-    this.connectionsPerHost = connectionsPerHost;
-  }
-
-  public int getThreadsAllowedToBlockForConnectionMultiplier() {
-    return threadsAllowedToBlockForConnectionMultiplier;
-  }
-
-  public void setThreadsAllowedToBlockForConnectionMultiplier(
-      int threadsAllowedToBlockForConnectionMultiplier) {
-    this.threadsAllowedToBlockForConnectionMultiplier =
-        threadsAllowedToBlockForConnectionMultiplier;
-  }
-
   public boolean enabledIndexes() {
     return version == 2;
   }
-
 }

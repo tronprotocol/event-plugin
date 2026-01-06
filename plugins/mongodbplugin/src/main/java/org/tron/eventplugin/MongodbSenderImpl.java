@@ -2,38 +2,34 @@ package org.tron.eventplugin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.pf4j.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tron.mongodb.MongoConfig;
 import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
 
+@Slf4j(topic = "event")
 public class MongodbSenderImpl {
 
   private static MongodbSenderImpl instance = null;
-  private static final Logger log = LoggerFactory.getLogger(MongodbSenderImpl.class);
   @Getter
   BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
-  private ExecutorService service = new ThreadPoolExecutor(8, 8,
-    0L, TimeUnit.MILLISECONDS, queue);
+  private final ExecutorService service = new ThreadPoolExecutor(8, 8,
+      0L, TimeUnit.MILLISECONDS, queue);
 
   private boolean loaded = false;
+  @Getter
   private BlockingQueue<Object> triggerQueue = new LinkedBlockingQueue<>();
 
   private String blockTopic = "";
@@ -65,7 +61,6 @@ public class MongodbSenderImpl {
         }
       }
     }
-
     return instance;
   }
 
@@ -85,7 +80,7 @@ public class MongodbSenderImpl {
     version = 1;
 
     if (params.length == 4) {
-      version = Integer.valueOf(params[3]);
+      version = Integer.parseInt(params[3]);
     }
 
     loadMongoConfig();
@@ -102,13 +97,13 @@ public class MongodbSenderImpl {
     }
 
     String mongoHostName = "";
-    int mongoPort = -1;
+    int mongoPort;
 
     try {
       mongoHostName = params[0];
-      mongoPort = Integer.valueOf(params[1]);
+      mongoPort = Integer.parseInt(params[1]);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("SetServerAddress failed", e);
       return;
     }
 
@@ -121,7 +116,6 @@ public class MongodbSenderImpl {
   }
 
   public void init() {
-
     if (loaded) {
       return;
     }
@@ -136,7 +130,6 @@ public class MongodbSenderImpl {
 
     triggerProcessThread = new Thread(triggerProcessLoop);
     triggerProcessThread.start();
-
     loaded = true;
   }
 
@@ -212,10 +205,8 @@ public class MongodbSenderImpl {
       mongoConfig.setConnectionsPerHost(connectionsPerHost);
       mongoConfig.setThreadsAllowedToBlockForConnectionMultiplier(
           threadsAllowedToBlockForConnectionMultiplie);
-    } catch (IOException e) {
-      e.printStackTrace();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("LoadMongoConfig failed", e);
     }
   }
 
@@ -267,10 +258,6 @@ public class MongodbSenderImpl {
   public void close() {
   }
 
-  public BlockingQueue<Object> getTriggerQueue() {
-    return triggerQueue;
-  }
-
   public void upsertEntityLong(MongoTemplate template, Object data, String indexKey) {
     String dataStr = (String) data;
     try {
@@ -302,20 +289,17 @@ public class MongodbSenderImpl {
   }
 
   public void handleBlockEvent(Object data) {
-    if (blockTopic == null || blockTopic.length() == 0) {
+    if (blockTopic == null || blockTopic.isEmpty()) {
       return;
     }
 
     MongoTemplate template = mongoTemplateMap.get(blockTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          if (mongoConfig.enabledIndexes()) {
-            upsertEntityLong(template, data, "blockNumber");
-          } else {
-            template.addEntity((String) data);
-          }
+      service.execute(() -> {
+        if (mongoConfig.enabledIndexes()) {
+          upsertEntityLong(template, data, "blockNumber");
+        } else {
+          template.addEntity((String) data);
         }
       });
     }
@@ -328,14 +312,11 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(transactionTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          if (mongoConfig.enabledIndexes()) {
-            upsertEntityString(template, data, "transactionId");
-          } else {
-            template.addEntity((String) data);
-          }
+      service.execute(() -> {
+        if (mongoConfig.enabledIndexes()) {
+          upsertEntityString(template, data, "transactionId");
+        } else {
+          template.addEntity((String) data);
         }
       });
     }
@@ -348,14 +329,11 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(solidityTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          if (mongoConfig.enabledIndexes()) {
-            upsertEntityLong(template, data, "latestSolidifiedBlockNumber");
-          } else {
-            template.addEntity((String) data);
-          }
+      service.execute(() -> {
+        if (mongoConfig.enabledIndexes()) {
+          upsertEntityLong(template, data, "latestSolidifiedBlockNumber");
+        } else {
+          template.addEntity((String) data);
         }
       });
     }
@@ -377,12 +355,7 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(contractLogTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          handleInsertContractTrigger(template, data, "uniqueId");
-        }
-      });
+      service.execute(() -> handleInsertContractTrigger(template, data, "uniqueId"));
     }
   }
 
@@ -393,23 +366,20 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(contractEventTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          String dataStr = (String) data;
-          if (dataStr.contains("\"removed\":true")) {
-            try {
-              JSONObject jsStr = JSON.parseObject(dataStr);
-              String uniqueId = jsStr.getString("uniqueId");
-              if (uniqueId != null) {
-                template.delete("uniqueId", uniqueId);
-              }
-            } catch (Exception ex) {
-              log.error("unknown exception happened in parse object ", ex);
+      service.execute(() -> {
+        String dataStr = (String) data;
+        if (dataStr.contains("\"removed\":true")) {
+          try {
+            JSONObject jsStr = JSON.parseObject(dataStr);
+            String uniqueId = jsStr.getString("uniqueId");
+            if (uniqueId != null) {
+              template.delete("uniqueId", uniqueId);
             }
-          } else {
-            handleInsertContractTrigger(template, data, "uniqueId");
+          } catch (Exception ex) {
+            log.error("unknown exception happened in parse object ", ex);
           }
+        } else {
+          handleInsertContractTrigger(template, data, "uniqueId");
         }
       });
     }
@@ -422,12 +392,7 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(solidityLogTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          handleInsertContractTrigger(template, data, "uniqueId");
-        }
-      });
+      service.execute(() -> handleInsertContractTrigger(template, data, "uniqueId"));
     }
   }
 
@@ -438,16 +403,11 @@ public class MongodbSenderImpl {
 
     MongoTemplate template = mongoTemplateMap.get(solidityEventTopic);
     if (Objects.nonNull(template)) {
-      service.execute(new Runnable() {
-        @Override
-        public void run() {
-          handleInsertContractTrigger(template, data, "uniqueId");
-        }
-      });
+      service.execute(() -> handleInsertContractTrigger(template, data, "uniqueId"));
     }
   }
 
-  private Runnable triggerProcessLoop =
+  private final Runnable triggerProcessLoop =
       () -> {
         while (isRunTriggerProcessThread) {
           try {
@@ -471,7 +431,11 @@ public class MongodbSenderImpl {
               handleSolidityLogTrigger(triggerData);
             } else if (triggerData.contains(Constant.SOLIDITYEVENT_TRIGGER_NAME)) {
               handleSolidityEventTrigger(triggerData);
+            } else {
+              log.error("not matched triggerData: {}", triggerData);
+              continue;
             }
+            log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
             log.info(ex.getMessage());
             Thread.currentThread().interrupt();
