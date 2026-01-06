@@ -16,23 +16,22 @@
 
 package org.tron.eventplugin.app;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.pf4j.CompoundPluginDescriptorFinder;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.ManifestPluginDescriptorFinder;
 import org.pf4j.PluginManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tron.common.logsfilter.IPluginEventListener;
 import org.tron.common.logsfilter.trigger.BlockLogTrigger;
 import org.tron.common.logsfilter.trigger.Trigger;
 
+@Slf4j
 public class PluginLauncher {
-
-  private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
   public static void main(String[] args) {
     String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
@@ -87,23 +86,25 @@ public class PluginLauncher {
       trigger.setTimeStamp(System.currentTimeMillis());
       trigger.setTransactionSize(100);
 
+      String triggerData;
+      try {
+        triggerData = objectMapper.writeValueAsString(trigger);
+      } catch (JsonProcessingException e) {
+        e.printStackTrace();
+        continue;
+      }
       eventListeners.forEach(listener -> {
-        try {
-          listener.handleBlockEvent(objectMapper.writeValueAsString(trigger));
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-          e.printStackTrace();
-        }
+        listener.handleBlockEvent(triggerData);
       });
     }
 
-    while (true) {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+    try {
+      Thread.sleep(10_000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
 
-    //pluginManager.stopPlugins();
+    //invoke stop() of KafkaLogFilterPlugin or MongodbLogFilterPlugin
+    pluginManager.stopPlugins();
   }
 }

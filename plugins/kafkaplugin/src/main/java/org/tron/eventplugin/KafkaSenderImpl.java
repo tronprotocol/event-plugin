@@ -1,5 +1,6 @@
 package org.tron.eventplugin;
 
+import com.alibaba.fastjson.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,17 +12,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class MessageSenderImpl {
+@Slf4j(topic = "event")
+public class KafkaSenderImpl {
 
-  private static MessageSenderImpl instance = null;
-  private static final Logger log = LoggerFactory.getLogger(MessageSenderImpl.class);
+  private static KafkaSenderImpl instance = null;
 
   @Setter
   private String serverAddress = "";
@@ -43,11 +43,11 @@ public class MessageSenderImpl {
   private Thread triggerProcessThread;
   private boolean isRunTriggerProcessThread = true;
 
-  public static MessageSenderImpl getInstance() {
+  public static KafkaSenderImpl getInstance() {
     if (Objects.isNull(instance)) {
-      synchronized (MessageSenderImpl.class) {
+      synchronized (KafkaSenderImpl.class) {
         if (Objects.isNull(instance)) {
-          instance = new MessageSenderImpl();
+          instance = new KafkaSenderImpl();
         }
       }
     }
@@ -59,13 +59,13 @@ public class MessageSenderImpl {
       return;
     }
 
-    createProducer(Constant.BLOCK_TRIGGER);
-    createProducer(Constant.TRANSACTION_TRIGGER);
-    createProducer(Constant.CONTRACTLOG_TRIGGER);
-    createProducer(Constant.CONTRACTEVENT_TRIGGER);
-    createProducer(Constant.SOLIDITY_TRIGGER);
-    createProducer(Constant.SOLIDITY_EVENT);
-    createProducer(Constant.SOLIDITY_LOG);
+    createProducer(EventTopic.BLOCK_TRIGGER.getType());
+    createProducer(EventTopic.TRANSACTION_TRIGGER.getType());
+    createProducer(EventTopic.CONTRACT_LOG_TRIGGER.getType());
+    createProducer(EventTopic.CONTRACT_EVENT_TRIGGER.getType());
+    createProducer(EventTopic.SOLIDITY_TRIGGER.getType());
+    createProducer(EventTopic.SOLIDITY_EVENT.getType());
+    createProducer(EventTopic.SOLIDITY_LOG.getType());
 
     triggerProcessThread = new Thread(triggerProcessLoop);
     triggerProcessThread.start();
@@ -73,20 +73,33 @@ public class MessageSenderImpl {
   }
 
   public void setTopic(int triggerType, String topic) {
-    if (triggerType == Constant.BLOCK_TRIGGER) {
-      blockTopic = topic;
-    } else if (triggerType == Constant.TRANSACTION_TRIGGER) {
-      transactionTopic = topic;
-    } else if (triggerType == Constant.CONTRACTEVENT_TRIGGER) {
-      contractEventTopic = topic;
-    } else if (triggerType == Constant.CONTRACTLOG_TRIGGER) {
-      contractLogTopic = topic;
-    } else if (triggerType == Constant.SOLIDITY_TRIGGER) {
-      solidityTopic = topic;
-    } else if (triggerType == Constant.SOLIDITY_EVENT) {
-      solidityEventTopic = topic;
-    } else if (triggerType == Constant.SOLIDITY_LOG) {
-      solidityLogTopic = topic;
+    EventTopic eventTopic = EventTopic.getEventTopicByType(triggerType);
+    if (eventTopic == null) {
+      log.error("Unknown trigger type {}", triggerType);
+      return;
+    }
+    switch (eventTopic) {
+      case BLOCK_TRIGGER:
+        blockTopic = topic;
+        break;
+      case TRANSACTION_TRIGGER:
+        transactionTopic = topic;
+        break;
+      case CONTRACT_EVENT_TRIGGER:
+        contractEventTopic = topic;
+        break;
+      case CONTRACT_LOG_TRIGGER:
+        contractLogTopic = topic;
+        break;
+      case SOLIDITY_TRIGGER:
+        solidityTopic = topic;
+        break;
+      case SOLIDITY_EVENT:
+        solidityEventTopic = topic;
+        break;
+      case SOLIDITY_LOG:
+        solidityLogTopic = topic;
+        break;
     }
   }
 
@@ -142,64 +155,60 @@ public class MessageSenderImpl {
     printTimestamp((String) data);
   }
 
-  public void close() {
-    for (Map.Entry<Integer, KafkaProducer<String, String>> entry : producerMap.entrySet()) {
-      entry.getValue().close();
-    }
-    producerMap.clear();
-  }
-
   public void handleBlockEvent(Object data) {
     if (blockTopic == null || blockTopic.isEmpty()) {
       return;
     }
-    MessageSenderImpl.getInstance().sendKafkaRecord(Constant.BLOCK_TRIGGER, blockTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.BLOCK_TRIGGER.getType(), blockTopic, data);
   }
 
   public void handleTransactionTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(transactionTopic)) {
       return;
     }
-    MessageSenderImpl.getInstance()
-        .sendKafkaRecord(Constant.TRANSACTION_TRIGGER, transactionTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.TRANSACTION_TRIGGER.getType(), transactionTopic, data);
   }
 
   public void handleContractLogTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(contractLogTopic)) {
       return;
     }
-    MessageSenderImpl.getInstance()
-        .sendKafkaRecord(Constant.CONTRACTLOG_TRIGGER, contractLogTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.CONTRACT_LOG_TRIGGER.getType(), contractLogTopic, data);
   }
 
   public void handleContractEventTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(contractEventTopic)) {
       return;
     }
-    MessageSenderImpl.getInstance()
-        .sendKafkaRecord(Constant.CONTRACTEVENT_TRIGGER, contractEventTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.CONTRACT_EVENT_TRIGGER.getType(), contractEventTopic, data);
   }
 
   public void handleSolidityTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(solidityTopic)) {
       return;
     }
-    MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_TRIGGER, solidityTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.SOLIDITY_TRIGGER.getType(), solidityTopic, data);
   }
 
   public void handleSolidityLogTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(solidityLogTopic)) {
       return;
     }
-    MessageSenderImpl.getInstance().sendKafkaRecord(Constant.SOLIDITY_LOG, solidityLogTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.SOLIDITY_LOG.getType(), solidityLogTopic, data);
   }
 
   public void handleSolidityEventTrigger(Object data) {
     if (Objects.isNull(data) || Objects.isNull(solidityEventTopic)) {
       return;
     }
-    MessageSenderImpl.getInstance()
-        .sendKafkaRecord(Constant.SOLIDITY_EVENT, solidityEventTopic, data);
+    KafkaSenderImpl.getInstance()
+        .sendKafkaRecord(EventTopic.SOLIDITY_EVENT.getType(), solidityEventTopic, data);
   }
 
   private final Runnable triggerProcessLoop =
@@ -210,22 +219,43 @@ public class MessageSenderImpl {
             if (Objects.isNull(triggerData)) {
               continue;
             }
+            //check if it's json
+            JSONObject jsonObject = JSONObject.parseObject(triggerData);
 
-            if (triggerData.contains(Constant.BLOCK_TRIGGER_NAME)) {
-              handleBlockEvent(triggerData);
-            } else if (triggerData.contains(Constant.TRANSACTION_TRIGGER_NAME)) {
-              handleTransactionTrigger(triggerData);
-            } else if (triggerData.contains(Constant.CONTRACTLOG_TRIGGER_NAME)) {
-              handleContractLogTrigger(triggerData);
-            } else if (triggerData.contains(Constant.CONTRACTEVENT_TRIGGER_NAME)) {
-              handleContractEventTrigger(triggerData);
-            } else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
-              handleSolidityTrigger(triggerData);
-            } else if (triggerData.contains(Constant.SOLIDITYLOG_TRIGGER_NAME)) {
-              handleSolidityLogTrigger(triggerData);
-            } else if (triggerData.contains(Constant.SOLIDITYEVENT_TRIGGER_NAME)) {
-              handleSolidityEventTrigger(triggerData);
+            if (!jsonObject.containsKey("triggerName")) {
+              log.error("Invalid triggerData without triggerName: {}", triggerData);
+              continue;
             }
+            String triggerName = jsonObject.getString("triggerName");
+            EventTopic eventTopic = EventTopic.getEventTopicByName(triggerName);
+            if (eventTopic == null) {
+              log.error("Not matched triggerName {} in data {}", triggerName, triggerData);
+              continue;
+            }
+            switch (eventTopic) {
+              case BLOCK_TRIGGER:
+                handleBlockEvent(triggerData);
+                break;
+              case TRANSACTION_TRIGGER:
+                handleTransactionTrigger(triggerData);
+                break;
+              case CONTRACT_LOG_TRIGGER:
+                handleContractLogTrigger(triggerData);
+                break;
+              case CONTRACT_EVENT_TRIGGER:
+                handleContractEventTrigger(triggerData);
+                break;
+              case SOLIDITY_TRIGGER:
+                handleSolidityTrigger(triggerData);
+                break;
+              case SOLIDITY_LOG:
+                handleSolidityLogTrigger(triggerData);
+                break;
+              case SOLIDITY_EVENT:
+                handleSolidityEventTrigger(triggerData);
+                break;
+            }
+            log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
             log.info(ex.getMessage());
             Thread.currentThread().interrupt();
@@ -236,4 +266,11 @@ public class MessageSenderImpl {
           }
         }
       };
+
+  public void close() {
+    for (Map.Entry<Integer, KafkaProducer<String, String>> entry : producerMap.entrySet()) {
+      entry.getValue().close();
+    }
+    producerMap.clear();
+  }
 }

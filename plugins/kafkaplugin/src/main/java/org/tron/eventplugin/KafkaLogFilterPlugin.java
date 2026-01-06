@@ -15,6 +15,6 @@ public class KafkaLogFilterPlugin extends Plugin {
 
   @Override
   public void stop() {
-    MessageSenderImpl.getInstance().close();
+    KafkaSenderImpl.getInstance().close();
   }
 }

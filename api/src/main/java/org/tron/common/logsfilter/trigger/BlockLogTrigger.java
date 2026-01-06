@@ -23,6 +23,10 @@ public class BlockLogTrigger extends Trigger {
 
   @Getter
   @Setter
+  private long latestSolidifiedBlockNumber;
+
+  @Getter
+  @Setter
   private List<String> transactionList = new ArrayList<>();
 
   /**
@@ -51,6 +55,7 @@ public class BlockLogTrigger extends Trigger {
         + ", blockNumber: " + blockNumber
         + ", blockhash: " + blockHash
         + ", transactionSize: " + transactionSize
+        + ", latestSolidifiedBlockNumber: " + latestSolidifiedBlockNumber
         + ", transactionList: " + transactionList
         + ", witnessAddress: " + witnessAddress
         + ", witnessPayPerBlock: " + witnessPayPerBlock

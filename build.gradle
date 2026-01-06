@@ -1,3 +1,7 @@
+plugins {
+    id 'base'
+}
+
 subprojects {
   apply plugin: 'java'
 
@@ -38,6 +42,14 @@ subprojects {
 }
 
 // plugin location
-ext.pluginsDir = rootProject.buildDir.path + '/plugins'
+ext.pluginsDir = rootProject.layout.buildDirectory.dir("plugins")
 
-task build(dependsOn: [':app:uberjar'])
+tasks.named('clean') {
+    doFirst {
+        delete rootProject.buildDir
+    }
+}
+
+tasks.named('build') {
+    dependsOn ':app:uberjar'
+}
