@@ -182,7 +182,7 @@ kafka-console-consumer.sh --zookeeper localhost:2181 --topic soliditylog
 See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-kafka).
 
 ### How to use MongoDB plugin
-You can build the indexes for mongo for existing collection as following: 
+These are default indexes when build automatically:
 ```
 db.block.createIndex({ blockNumber: 1 },{ name: "blockNumber",unique: true});
 
@@ -200,7 +200,7 @@ db.soliditylog.createIndex({ contractAddress: 1 },{ name: "contractAddress" });
 db.contractlog.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
 db.contractlog.createIndex({ contractAddress: 1 },{ name: "contractAddress" });
 ```
-See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-mongodb).
+You can also create other indexes as necessary. See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-mongodb).
 
 ### Load plugin in Java-tron
 * add --es to command line, for example:
