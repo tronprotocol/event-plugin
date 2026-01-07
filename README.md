@@ -15,7 +15,7 @@ Event-plugin can be built with JDK 8 or JDK 17.
 * This will produce plugin zips, named `plugin-kafka-1.0.0.zip` and `plugin-mongodb-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
 
 
-### Edit **config.conf** of Java-tron, add the following filed:
+### Edit **config.conf** of Java-tron, add the following fields:
 ```
 event.subscribe = {
     path = "" // absolute path of plugin
@@ -197,7 +197,7 @@ db.contractevent.createIndex({ uniqueId: 1 },{ unique: true });
 db.soliditylog.createIndex({ uniqueId: 1 },{ unique: true });
 db.soliditylog.createIndex({ contractAddress: 1 });
 
-db.contractlog.createIndex({ uniqueId: 1, contractAddress: 1 },{ unique: true });
+db.contractlog.createIndex({ uniqueId: 1 },{ unique: true });
 db.contractlog.createIndex({ contractAddress: 1 });
 ```
 See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-mongodb).

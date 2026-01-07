@@ -81,16 +81,16 @@ public class PluginLauncher {
     eventListeners.forEach(IPluginEventListener::start);
 
     ObjectMapper objectMapper = new ObjectMapper();
-    for (int index = 0; index < 1; ++index) {
+    for (int index = 0; index < 2; ++index) {
       BlockLogTrigger trigger = new BlockLogTrigger();
-      trigger.setBlockNumber(new Random().nextInt(10000));
+      trigger.setBlockNumber(new Random().nextInt(10000)); //blockNumber is unique key
       trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659f");
       trigger.setTimeStamp(System.currentTimeMillis());
       trigger.setTransactionSize(100);
 
       String triggerData;
       try {
-        triggerData = objectMapper.writeValueAsString(trigger);
+        triggerData = objectMapper.writeValueAsString(trigger);//convert to json
       } catch (JsonProcessingException e) {
         log.error("", e);
         continue;
