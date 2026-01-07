@@ -32,6 +32,11 @@ public class MongodbEventListener implements IPluginEventListener {
   }
 
   @Override
+  public void stop() {
+    MongodbSenderImpl.getInstance().close();
+  }
+
+  @Override
   public void handleBlockEvent(Object data) {
     if (Objects.isNull(data)) {
       return;

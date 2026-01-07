@@ -36,6 +36,11 @@ public class KafkaEventListener implements IPluginEventListener {
   }
 
   @Override
+  public void stop() {
+    KafkaSenderImpl.getInstance().close();
+  }
+
+  @Override
   public void handleBlockEvent(Object data) {
     if (Objects.isNull(data)) {
       return;

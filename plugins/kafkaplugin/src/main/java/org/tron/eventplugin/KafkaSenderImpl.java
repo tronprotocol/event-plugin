@@ -257,8 +257,8 @@ public class KafkaSenderImpl {
             }
             log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
-            log.info(ex.getMessage());
             Thread.currentThread().interrupt();
+            break;
           } catch (Exception ex) {
             log.error("unknown exception happened in process capsule loop", ex);
           } catch (Throwable throwable) {
@@ -268,9 +268,11 @@ public class KafkaSenderImpl {
       };
 
   public void close() {
+    log.info("Closing KafkaSender...");
     for (Map.Entry<Integer, KafkaProducer<String, String>> entry : producerMap.entrySet()) {
       entry.getValue().close();
     }
     producerMap.clear();
+    log.info("KafkaSender Closed.");
   }
 }

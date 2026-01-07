@@ -463,8 +463,8 @@ public class MongodbSenderImpl {
             }
             log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
-            log.info(ex.getMessage());
             Thread.currentThread().interrupt();
+            break;
           } catch (Exception ex) {
             log.error("unknown exception happened in process capsule loop", ex);
           } catch (Throwable throwable) {
@@ -474,9 +474,26 @@ public class MongodbSenderImpl {
       };
 
   public void close() {
+    log.info("Closing MongodbSender...");
     if (triggerProcessThread != null) {
       triggerProcessThread.interrupt();
     }
-    service.shutdownNow();
+    service.shutdown(); // Disable new tasks from being submitted
+    try {
+      // Wait a while for existing tasks to terminate
+      if (!service.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+        service.shutdownNow(); // Cancel currently executing tasks
+        // Wait a while for tasks to respond to being cancelled
+        if (!service.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+          log.warn("Mongo triggerProcessThread did not terminate");
+        }
+      }
+    } catch (InterruptedException ie) {
+      // (Re-)Cancel if current thread also interrupted
+      service.shutdownNow();
+      // Preserve interrupt status
+      Thread.currentThread().interrupt();
+    }
+    log.info("MongodbSender closed.");
   }
 }

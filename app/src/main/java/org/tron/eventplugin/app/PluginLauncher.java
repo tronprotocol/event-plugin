@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.CompoundPluginDescriptorFinder;
 import org.pf4j.DefaultPluginManager;
@@ -54,6 +55,7 @@ public class PluginLauncher {
     List<IPluginEventListener> eventListeners;
     eventListeners = pluginManager.getExtensions(IPluginEventListener.class);
 
+    log.info("start plugin...");
     if (Objects.isNull(eventListeners)) {
       return;
     }
@@ -79,10 +81,10 @@ public class PluginLauncher {
     eventListeners.forEach(IPluginEventListener::start);
 
     ObjectMapper objectMapper = new ObjectMapper();
-    for (int index = 0; index < 1000; ++index) {
+    for (int index = 0; index < 1; ++index) {
       BlockLogTrigger trigger = new BlockLogTrigger();
-      trigger.setBlockNumber(index);
-      trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");
+      trigger.setBlockNumber(new Random().nextInt(10000));
+      trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659f");
       trigger.setTimeStamp(System.currentTimeMillis());
       trigger.setTransactionSize(100);
 
@@ -90,7 +92,7 @@ public class PluginLauncher {
       try {
         triggerData = objectMapper.writeValueAsString(trigger);
       } catch (JsonProcessingException e) {
-        e.printStackTrace();
+        log.error("", e);
         continue;
       }
       eventListeners.forEach(listener -> {
@@ -101,10 +103,10 @@ public class PluginLauncher {
     try {
       Thread.sleep(10_000);
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      //ignore
     }
-
-    //invoke stop() of KafkaLogFilterPlugin or MongodbLogFilterPlugin
+    log.info("try to close plugin...");
+    eventListeners.forEach(IPluginEventListener::stop);
     pluginManager.stopPlugins();
   }
 }
