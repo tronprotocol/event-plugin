@@ -184,21 +184,21 @@ See more details on [developers](https://developers.tron.network/docs/event-plug
 ### How to use MongoDB plugin
 You can build the indexes for mongo for existing collection as following: 
 ```
-db.block.createIndex({ blockNumber: 1 },{ unique: true });
+db.block.createIndex({ blockNumber: 1 },{ name: "blockNumber",unique: true});
 
-db.transaction.createIndex({ transactionId: 1 },{ unique: true });
+db.transaction.createIndex({ transactionId: 1 },{ name: "transactionId",unique: true });
 
-db.solidity.createIndex({ latestSolidifiedBlockNumber: 1 },{ unique: true });
+db.solidity.createIndex({ latestSolidifiedBlockNumber: 1 },{ name: "latestSolidifiedBlockNumber",unique: true });
 
-db.solidityevent.createIndex({ uniqueId: 1 },{ unique: true });
+db.solidityevent.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
 
-db.contractevent.createIndex({ uniqueId: 1 },{ unique: true });
+db.contractevent.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
 
-db.soliditylog.createIndex({ uniqueId: 1 },{ unique: true });
-db.soliditylog.createIndex({ contractAddress: 1 });
+db.soliditylog.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
+db.soliditylog.createIndex({ contractAddress: 1 },{ name: "contractAddress" });
 
-db.contractlog.createIndex({ uniqueId: 1 },{ unique: true });
-db.contractlog.createIndex({ contractAddress: 1 });
+db.contractlog.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
+db.contractlog.createIndex({ contractAddress: 1 },{ name: "contractAddress" });
 ```
 See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-mongodb).
 
