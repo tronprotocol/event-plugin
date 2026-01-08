@@ -465,7 +465,6 @@ public class MongodbSenderImpl implements Closeable {
             log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            break;
           } catch (Exception ex) {
             log.error("unknown exception happened in process capsule loop", ex);
           } catch (Throwable throwable) {
@@ -477,8 +476,15 @@ public class MongodbSenderImpl implements Closeable {
   @Override
   public void close() {
     log.info("Closing MongodbSender...");
+    isRunTriggerProcessThread = false;
     if (triggerProcessThread != null) {
       triggerProcessThread.interrupt();
+      try {
+        triggerProcessThread.join(1000);
+      } catch (InterruptedException e) {
+        log.warn("Interrupted while waiting for triggerProcessThread to stop");
+        Thread.currentThread().interrupt();
+      }
     }
     service.shutdown(); // Disable new tasks from being submitted
     try {
@@ -487,7 +493,7 @@ public class MongodbSenderImpl implements Closeable {
         service.shutdownNow(); // Cancel currently executing tasks
         // Wait a while for tasks to respond to being cancelled
         if (!service.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
-          log.warn("Mongo triggerProcessThread did not terminate");
+          log.warn("Mongo service thread pool did not terminate");
         }
       }
     } catch (InterruptedException ie) {
@@ -495,6 +501,9 @@ public class MongodbSenderImpl implements Closeable {
       service.shutdownNow();
       // Preserve interrupt status
       Thread.currentThread().interrupt();
+    }
+    if (mongoManager != null) {
+      mongoManager.close();
     }
     log.info("MongodbSender closed.");
   }

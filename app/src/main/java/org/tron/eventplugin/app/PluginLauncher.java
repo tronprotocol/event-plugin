@@ -106,7 +106,8 @@ public class PluginLauncher {
       //ignore
     }
     log.info("try to close plugin...");
-    eventListeners.forEach(IPluginEventListener::stop);
+
+    // will invoke stop method of KafkaLogFilterPlugin or MongodbLogFilterPlugin
     pluginManager.stopPlugins();
   }
 }

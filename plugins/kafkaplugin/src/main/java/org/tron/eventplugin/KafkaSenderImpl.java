@@ -259,7 +259,6 @@ public class KafkaSenderImpl implements Closeable {
             log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            break;
           } catch (Exception ex) {
             log.error("unknown exception happened in process capsule loop", ex);
           } catch (Throwable throwable) {
@@ -271,9 +270,17 @@ public class KafkaSenderImpl implements Closeable {
   @Override
   public void close() {
     log.info("Closing KafkaSender...");
-    for (Map.Entry<Integer, KafkaProducer<String, String>> entry : producerMap.entrySet()) {
-      entry.getValue().close();
+    isRunTriggerProcessThread = false;
+    if (triggerProcessThread != null) {
+      triggerProcessThread.interrupt();
+      try {
+        triggerProcessThread.join(1000);
+      } catch (InterruptedException e) {
+        log.warn("Interrupted while waiting for triggerProcessThread to stop");
+        Thread.currentThread().interrupt();
+      }
     }
+    producerMap.values().forEach(KafkaProducer::close);
     producerMap.clear();
     log.info("KafkaSender Closed.");
   }
