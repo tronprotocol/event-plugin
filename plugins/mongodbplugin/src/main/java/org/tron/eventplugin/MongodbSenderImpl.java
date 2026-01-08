@@ -2,6 +2,7 @@ package org.tron.eventplugin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import java.io.Closeable;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
 
 @Slf4j(topic = "event")
-public class MongodbSenderImpl {
+public class MongodbSenderImpl implements Closeable {
 
   private static MongodbSenderImpl instance = null;
   @Getter
@@ -473,6 +474,7 @@ public class MongodbSenderImpl {
         }
       };
 
+  @Override
   public void close() {
     log.info("Closing MongodbSender...");
     if (triggerProcessThread != null) {

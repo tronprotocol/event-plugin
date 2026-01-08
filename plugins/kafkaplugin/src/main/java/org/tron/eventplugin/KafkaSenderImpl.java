@@ -1,6 +1,7 @@
 package org.tron.eventplugin;
 
 import com.alibaba.fastjson.JSONObject;
+import java.io.Closeable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 @Slf4j(topic = "event")
-public class KafkaSenderImpl {
+public class KafkaSenderImpl implements Closeable {
 
   private static KafkaSenderImpl instance = null;
 
@@ -267,6 +268,7 @@ public class KafkaSenderImpl {
         }
       };
 
+  @Override
   public void close() {
     log.info("Closing KafkaSender...");
     for (Map.Entry<Integer, KafkaProducer<String, String>> entry : producerMap.entrySet()) {
