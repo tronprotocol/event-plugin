@@ -426,7 +426,7 @@ public class MongodbSenderImpl implements Closeable {
             if (Objects.isNull(triggerData)) {
               continue;
             }
-            //check if it's json
+            // check if it's json
             JSONObject jsonObject = JSONObject.parseObject(triggerData);
 
             if (!jsonObject.containsKey("triggerName")) {

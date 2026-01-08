@@ -1,6 +1,6 @@
 # Tron event subscribe plugin
 
-This is an implementation of Tron event subscribe model. 
+This is an implementation of Tron event subscribe model.
 
 * **api** module defines IPluginEventListener, a protocol between Java-tron and event plugin. 
 * **app** module is an example for loading plugin, developers could use it for debugging.
@@ -21,7 +21,7 @@ event.subscribe = {
     path = "" // absolute path of plugin
     server = "" // target server address to receive event triggers
     # dbname|username|password or dbname|username|password|version
-    # if you use version 2 and one collection not exists, it will create index automaticaly;
+    # If you use version 2 and one collection not exists, it will create index automatically;
     # In any other case, it will not create index, you must create index manually
     dbconfig = ""
     topics = [
