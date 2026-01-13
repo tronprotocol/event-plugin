@@ -2,7 +2,6 @@ package org.tron.eventplugin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import java.io.Closeable;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +20,7 @@ import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
 
 @Slf4j(topic = "event")
-public class MongodbSenderImpl implements Closeable {
+public class MongodbSenderImpl implements AutoCloseable {
 
   private static MongodbSenderImpl instance = null;
   @Getter
