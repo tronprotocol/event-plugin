@@ -4,6 +4,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -33,6 +34,7 @@ public class MongoManager implements Closeable {
         config.getThreadsAllowedToBlockForConnectionMultiplier();
     MongoClientOptions options = MongoClientOptions.builder().connectionsPerHost(connectionsPerHost)
         .threadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplier)
+        .writeConcern(WriteConcern.JOURNALED)
         .build();
 
     String host = config.getHost();
