@@ -16,12 +16,12 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(address) || address.isEmpty()) {
       return;
     }
-    MessageSenderImpl.getInstance().setServerAddress(address);
+    KafkaSenderImpl.getInstance().setServerAddress(address);
   }
 
   @Override
   public void setTopic(int eventType, String topic) {
-    MessageSenderImpl.getInstance().setTopic(eventType, topic);
+    KafkaSenderImpl.getInstance().setTopic(eventType, topic);
   }
 
   @Override
@@ -32,7 +32,12 @@ public class KafkaEventListener implements IPluginEventListener {
   @Override
   public void start() {
     // MessageSenderImpl should never init until server address is set
-    MessageSenderImpl.getInstance().init();
+    KafkaSenderImpl.getInstance().init();
+  }
+
+  @Override
+  public void stop() {
+    KafkaSenderImpl.getInstance().close();
   }
 
   @Override
@@ -40,7 +45,7 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 
   @Override
@@ -48,7 +53,7 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 
   @Override
@@ -56,7 +61,7 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 
   @Override
@@ -64,7 +69,7 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 
   @Override
@@ -72,12 +77,12 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 
   @Override
   public int getPendingSize() {
-    return MessageSenderImpl.getInstance().getTriggerQueue().size();
+    return KafkaSenderImpl.getInstance().getTriggerQueue().size();
   }
 
   @Override
@@ -85,7 +90,7 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 
   @Override
@@ -93,6 +98,6 @@ public class KafkaEventListener implements IPluginEventListener {
     if (Objects.isNull(data)) {
       return;
     }
-    MessageSenderImpl.getInstance().getTriggerQueue().offer(data);
+    KafkaSenderImpl.getInstance().getTriggerQueue().offer(data);
   }
 }

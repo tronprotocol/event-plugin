@@ -4,9 +4,11 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.pf4j.util.StringUtils;
 
 @Slf4j(topic = "event")
-public class MongoManager {
+public class MongoManager implements Closeable {
 
   @Setter
   @Getter
@@ -32,6 +34,7 @@ public class MongoManager {
         config.getThreadsAllowedToBlockForConnectionMultiplier();
     MongoClientOptions options = MongoClientOptions.builder().connectionsPerHost(connectionsPerHost)
         .threadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplier)
+        .writeConcern(WriteConcern.JOURNALED)
         .build();
 
     String host = config.getHost();
@@ -87,6 +90,13 @@ public class MongoManager {
       } else {
         log.info("[createCollection] collection={} already exists", collectionName);
       }
+    }
+  }
+
+  @Override
+  public void close() {
+    if (mongo != null) {
+      mongo.close();
     }
   }
 }

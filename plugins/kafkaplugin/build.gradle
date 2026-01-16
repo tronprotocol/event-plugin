@@ -1,8 +1,9 @@
 dependencies {
-  // compileOnly important!!! We do not want to put the api into the zip file since the main program has it already!
-  compileOnly project(':api')
+    // compileOnly important!!! We do not want to put the api into the zip file since the main program has it already!
+    compileOnly project(':api')
 
-  implementation ("org.apache.kafka:kafka-clients:3.9.1"){
-    exclude group: "org.slf4j"
-  }
+    compileOnly group: 'com.alibaba', name: 'fastjson', version: '1.2.83'
+    implementation("org.apache.kafka:kafka-clients:3.9.1") {
+        exclude group: "org.slf4j"
+    }
 }

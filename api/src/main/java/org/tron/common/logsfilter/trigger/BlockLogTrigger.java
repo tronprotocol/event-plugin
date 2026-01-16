@@ -1,9 +1,7 @@
 package org.tron.common.logsfilter.trigger;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,22 +21,11 @@ public class BlockLogTrigger extends Trigger {
 
   @Getter
   @Setter
+  private long latestSolidifiedBlockNumber;
+
+  @Getter
+  @Setter
   private List<String> transactionList = new ArrayList<>();
-
-  /**
-   * address of witness
-   */
-  @Getter
-  @Setter
-  private String witnessAddress;
-
-  @Getter
-  @Setter
-  private long witnessPayPerBlock;
-
-  @Getter
-  @Setter
-  Map<String, Long> witnessMap = new HashMap<>();
 
   public BlockLogTrigger() {
     setTriggerName(Trigger.BLOCK_TRIGGER_NAME);
@@ -51,9 +38,7 @@ public class BlockLogTrigger extends Trigger {
         + ", blockNumber: " + blockNumber
         + ", blockhash: " + blockHash
         + ", transactionSize: " + transactionSize
-        + ", transactionList: " + transactionList
-        + ", witnessAddress: " + witnessAddress
-        + ", witnessPayPerBlock: " + witnessPayPerBlock
-        + ", witnessMap: " + witnessMap;
+        + ", latestSolidifiedBlockNumber: " + latestSolidifiedBlockNumber
+        + ", transactionList: " + transactionList;
   }
 }

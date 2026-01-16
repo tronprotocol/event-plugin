@@ -3,33 +3,38 @@ apply plugin: 'application'
 mainClassName = 'org.tron.eventplugin.app.PluginLauncher'
 
 dependencies {
-  implementation project(':api')
-  implementation (group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}") {
-    exclude group: "org.slf4j"
-  }
-  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
-  implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.3'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.18.3'
-  implementation "com.madgag.spongycastle:core:1.58.0.0"
-  implementation "com.madgag.spongycastle:prov:1.58.0.0"
+    implementation project(':api')
+
+    implementation(group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}")
+    implementation 'org.apache.commons:commons-lang3:3.5'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.3.14'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.18.3'
+    implementation "com.madgag.spongycastle:core:1.58.0.0"
+    implementation "com.madgag.spongycastle:prov:1.58.0.0"
+    implementation 'com.alibaba:fastjson:1.2.83'
 }
 
 task uberjar(type: Jar, dependsOn: ['compileJava']) {
-  zip64 true
-  from configurations.runtimeClasspath.asFileTree.files.collect {
+    zip64 true
+
+    from {
+        configurations.runtimeClasspath.collect { file ->
+            file.isDirectory() ? file : zipTree(file)
+        }
+    }
+
     exclude "META-INF/*.SF"
     exclude "META-INF/*.DSA"
     exclude "META-INF/*.RSA"
-    zipTree(it)
-  }
-  from files(sourceSets.main.output.classesDirs)
-  from files(sourceSets.main.resources)
-  manifest {
-    attributes 'Main-Class': mainClassName
-  }
 
-  baseName = "${project.name}-plugin-demo"
-  classifier = "uberjar"
+    from sourceSets.main.output
+
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+
+    archiveBaseName.set("${project.name}-plugin-demo")
+    archiveClassifier.set("uberjar")
 }
-

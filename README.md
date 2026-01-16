@@ -1,13 +1,13 @@
-# Tron eventsubscribe plugin
+# Tron event subscribe plugin
 
-This is an implementation of Tron eventsubscribe model. 
+This is an implementation of Tron event subscribe model.
 
 * **api** module defines IPluginEventListener, a protocol between Java-tron and event plugin. 
 * **app** module is an example for loading plugin, developers could use it for debugging.
 * **kafkaplugin** module is the implementation for kafka, it implements IPluginEventListener, it receives events subscribed from Java-tron and relay events to kafka server. 
 * **mongodbplugin** mongodbplugin module is the implementation for mongodb. 
 ### Setup/Build
-Eventplugin can be built with JDK 8 or JDK17.
+Event-plugin can be built with JDK 8 or JDK 17.
 1. Clone the repo
 2. Go to eventplugin `cd eventplugin` 
 3. run `./gradlew build`
@@ -15,15 +15,14 @@ Eventplugin can be built with JDK 8 or JDK17.
 * This will produce plugin zips, named `plugin-kafka-1.0.0.zip` and `plugin-mongodb-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
 
 
-### Edit **config.conf** of Java-tron, add the following fileds:
+### Edit **config.conf** of Java-tron, add the following fields:
 ```
 event.subscribe = {
     path = "" // absolute path of plugin
     server = "" // target server address to receive event triggers
-    # dbname|username|password, if you want to create indexes for collections when the collections
-    # are not exist, you can add version and set it to 2, as dbname|username|password|version
-    # if you use version 2 and one collection not exists, it will create index automaticaly;
-    # if you use version 2 and one collection exists, it will not create index, you must create index manually;
+    # dbname|username|password or dbname|username|password|version
+    # If you use version 2 and one collection not exists, it will create index automatically;
+    # In any other case, it will not create index, you must create index manually
     dbconfig = ""
     topics = [
         {
@@ -99,13 +98,14 @@ event.subscribe = {
            remove comment and set listeners=PLAINTEXT://:9092  
            remove comment and set advertised.listeners to PLAINTEXT://host_ip:9092 
 
+### How to use kafka plugin
 ##### Install Kafka
-**On Mac**:
+*On Mac*:
 ```
 brew install kafka
 ```
 
-**On Linux**:
+*On Linux*:
 ```
 cd /usr/local
 wget http://archive.apache.org/dist/kafka/0.10.2.2/kafka_2.10-0.10.2.2.tgz
@@ -119,12 +119,12 @@ source /etc/profile
 **Note**: make sure the version of Kafka is the same as the version set in build.gradle of eventplugin project.(kafka_2.10-0.10.2.2 kafka)
 
 ##### Run Kafka
-**On Mac**:
+*On Mac*:
 ```
 zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 ```
 
-**On Linux**:
+*On Linux*:
 ```
 zookeeper-server-start.sh /usr/local/kafka/config/zookeeper.properties &
 Sleep about 3 seconds 
@@ -133,7 +133,7 @@ kafka-server-start.sh /usr/local/kafka/config/server.properties &
 
 #### Create topics to receive events, the topic is defined in config.conf
 
-**On Mac**:
+*On Mac*:
 ```
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
@@ -144,7 +144,7 @@ kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partit
 kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic soliditylog
 ```
 
-**On Linux**:
+*On Linux*:
 ```
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic block
 kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic transaction
@@ -157,7 +157,7 @@ kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --par
 
 #### Kafka consumer
 
-**On Mac**:
+*On Mac*:
 ```
 kafka-console-consumer --bootstrap-server localhost:9092  --topic block
 kafka-console-consumer --bootstrap-server localhost:9092  --topic transaction
@@ -168,7 +168,7 @@ kafka-console-consumer --bootstrap-server localhost:9092  --topic solidityevent
 kafka-console-consumer --bootstrap-server localhost:9092  --topic soliditylog
 ```
 
-**On Linux**:
+*On Linux*:
 ```
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic block
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic transaction
@@ -178,6 +178,29 @@ kafka-console-consumer.sh --zookeeper localhost:2181 --topic solidity
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic solidityevent
 kafka-console-consumer.sh --zookeeper localhost:2181 --topic soliditylog
 ```
+
+See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-kafka).
+
+### How to use MongoDB plugin
+These are default indexes when build automatically:
+```
+db.block.createIndex({ blockNumber: 1 },{ name: "blockNumber",unique: true});
+
+db.transaction.createIndex({ transactionId: 1 },{ name: "transactionId",unique: true });
+
+db.solidity.createIndex({ latestSolidifiedBlockNumber: 1 },{ name: "latestSolidifiedBlockNumber",unique: true });
+
+db.solidityevent.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
+
+db.contractevent.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
+
+db.soliditylog.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
+db.soliditylog.createIndex({ contractAddress: 1 },{ name: "contractAddress" });
+
+db.contractlog.createIndex({ uniqueId: 1 },{ name: "uniqueId",unique: true });
+db.contractlog.createIndex({ contractAddress: 1 },{ name: "contractAddress" });
+```
+You can also create other indexes as necessary. See more details on [developers](https://developers.tron.network/docs/event-plugin-deployment-mongodb).
 
 ### Load plugin in Java-tron
 * add --es to command line, for example:

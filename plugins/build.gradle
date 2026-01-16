@@ -1,39 +1,39 @@
 subprojects {
-  jar {
-    manifest {
-      attributes 'Plugin-Class': "${pluginClass}",
-          'Plugin-Id': "${pluginId}",
-          'Plugin-Version': "${version}",
-          'Plugin-Provider': "${pluginProvider}"
-    }
-  }
-
-  task plugin(type: Jar) {
-    manifest {
-      attributes 'Plugin-Class': "${pluginClass}",
-              'Plugin-Id': "${pluginId}",
-              'Plugin-Version': "${version}",
-              'Plugin-Provider': "${pluginProvider}"
+    jar {
+        manifest {
+            attributes 'Plugin-Class': "${pluginClass}",
+                    'Plugin-Id': "${pluginId}",
+                    'Plugin-Version': "${version}",
+                    'Plugin-Provider': "${pluginProvider}"
+        }
     }
 
-    baseName = "plugin-${pluginId}"
-    into('classes') {
-      with jar
-    }
-    into('lib') {
-      from configurations.runtimeClasspath
-    }
-    extension('zip')
-  }
+    tasks.register('plugin', Jar) {
+        manifest {
+            attributes 'Plugin-Class': "${pluginClass}",
+                    'Plugin-Id': "${pluginId}",
+                    'Plugin-Version': "${version}",
+                    'Plugin-Provider': "${pluginProvider}"
+        }
 
-  task assemblePlugin(type: Copy) {
-    from plugin
-    into pluginsDir
-  }
+        baseName = "plugin-${pluginId}"
+        into('classes') {
+            with jar
+        }
+        into('lib') {
+            from configurations.runtimeClasspath
+        }
+        extension('zip')
+    }
+
+    task assemblePlugin(type: Copy) {
+        from plugin
+        into pluginsDir
+    }
 }
 
-task assemblePlugins(type: Copy) {
-  dependsOn subprojects.assemblePlugin
+tasks.register('assemblePlugins', Copy) {
+    dependsOn subprojects.assemblePlugin
 }
 
 build.dependsOn project.tasks.assemblePlugins

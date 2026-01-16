@@ -20,7 +20,7 @@ import org.tron.mongodb.MongoManager;
 import org.tron.mongodb.MongoTemplate;
 
 @Slf4j(topic = "event")
-public class MongodbSenderImpl {
+public class MongodbSenderImpl implements AutoCloseable {
 
   private static MongodbSenderImpl instance = null;
   @Getter
@@ -236,27 +236,36 @@ public class MongodbSenderImpl {
 
 
   public void setTopic(int triggerType, String topic) {
-    if (triggerType == Constant.BLOCK_TRIGGER) {
-      blockTopic = topic;
-    } else if (triggerType == Constant.TRANSACTION_TRIGGER) {
-      transactionTopic = topic;
-    } else if (triggerType == Constant.CONTRACTEVENT_TRIGGER) {
-      contractEventTopic = topic;
-    } else if (triggerType == Constant.CONTRACTLOG_TRIGGER) {
-      contractLogTopic = topic;
-    } else if (triggerType == Constant.SOLIDITY_TRIGGER) {
-      solidityTopic = topic;
-    } else if (triggerType == Constant.SOLIDITY_EVENT_TRIGGER) {
-      solidityEventTopic = topic;
-    } else if (triggerType == Constant.SOLIDITY_LOG_TRIGGER) {
-      solidityLogTopic = topic;
-    } else {
+    EventTopic eventTopic = EventTopic.getEventTopicByType(triggerType);
+    if (eventTopic == null) {
+      log.error("Unknown trigger type {}", triggerType);
       return;
+    }
+    switch (eventTopic) {
+      case BLOCK_TRIGGER:
+        blockTopic = topic;
+        break;
+      case TRANSACTION_TRIGGER:
+        transactionTopic = topic;
+        break;
+      case CONTRACT_EVENT_TRIGGER:
+        contractEventTopic = topic;
+        break;
+      case CONTRACT_LOG_TRIGGER:
+        contractLogTopic = topic;
+        break;
+      case SOLIDITY_TRIGGER:
+        solidityTopic = topic;
+        break;
+      case SOLIDITY_EVENT:
+        solidityEventTopic = topic;
+        break;
+      case SOLIDITY_LOG:
+        solidityLogTopic = topic;
+        break;
     }
   }
 
-  public void close() {
-  }
 
   public void upsertEntityLong(MongoTemplate template, Object data, String indexKey) {
     String dataStr = (String) data;
@@ -416,28 +425,44 @@ public class MongodbSenderImpl {
             if (Objects.isNull(triggerData)) {
               continue;
             }
+            // check if it's json
+            JSONObject jsonObject = JSONObject.parseObject(triggerData);
 
-            if (triggerData.contains(Constant.BLOCK_TRIGGER_NAME)) {
-              handleBlockEvent(triggerData);
-            } else if (triggerData.contains(Constant.TRANSACTION_TRIGGER_NAME)) {
-              handleTransactionTrigger(triggerData);
-            } else if (triggerData.contains(Constant.CONTRACTLOG_TRIGGER_NAME)) {
-              handleContractLogTrigger(triggerData);
-            } else if (triggerData.contains(Constant.CONTRACTEVENT_TRIGGER_NAME)) {
-              handleContractEventTrigger(triggerData);
-            } else if (triggerData.contains(Constant.SOLIDITY_TRIGGER_NAME)) {
-              handleSolidityTrigger(triggerData);
-            } else if (triggerData.contains(Constant.SOLIDITYLOG_TRIGGER_NAME)) {
-              handleSolidityLogTrigger(triggerData);
-            } else if (triggerData.contains(Constant.SOLIDITYEVENT_TRIGGER_NAME)) {
-              handleSolidityEventTrigger(triggerData);
-            } else {
-              log.error("not matched triggerData: {}", triggerData);
+            if (!jsonObject.containsKey("triggerName")) {
+              log.error("Invalid triggerData without triggerName: {}", triggerData);
               continue;
+            }
+            String triggerName = jsonObject.getString("triggerName");
+            EventTopic eventTopic = EventTopic.getEventTopicByName(triggerName);
+            if (eventTopic == null) {
+              log.error("Not matched triggerName {} in data {}", triggerName, triggerData);
+              continue;
+            }
+            switch (eventTopic) {
+              case BLOCK_TRIGGER:
+                handleBlockEvent(triggerData);
+                break;
+              case TRANSACTION_TRIGGER:
+                handleTransactionTrigger(triggerData);
+                break;
+              case CONTRACT_LOG_TRIGGER:
+                handleContractLogTrigger(triggerData);
+                break;
+              case CONTRACT_EVENT_TRIGGER:
+                handleContractEventTrigger(triggerData);
+                break;
+              case SOLIDITY_TRIGGER:
+                handleSolidityTrigger(triggerData);
+                break;
+              case SOLIDITY_LOG:
+                handleSolidityLogTrigger(triggerData);
+                break;
+              case SOLIDITY_EVENT:
+                handleSolidityEventTrigger(triggerData);
+                break;
             }
             log.debug("handle triggerData: {}", triggerData);
           } catch (InterruptedException ex) {
-            log.info(ex.getMessage());
             Thread.currentThread().interrupt();
           } catch (Exception ex) {
             log.error("unknown exception happened in process capsule loop", ex);
@@ -446,4 +471,39 @@ public class MongodbSenderImpl {
           }
         }
       };
+
+  @Override
+  public void close() {
+    log.info("Closing MongodbSender...");
+    isRunTriggerProcessThread = false;
+    if (triggerProcessThread != null) {
+      triggerProcessThread.interrupt();
+      try {
+        triggerProcessThread.join(1000);
+      } catch (InterruptedException e) {
+        log.warn("Interrupted while waiting for triggerProcessThread to stop");
+        Thread.currentThread().interrupt();
+      }
+    }
+    service.shutdown(); // Disable new tasks from being submitted
+    try {
+      // Wait a while for existing tasks to terminate
+      if (!service.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+        service.shutdownNow(); // Cancel currently executing tasks
+        // Wait a while for tasks to respond to being cancelled
+        if (!service.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+          log.warn("Mongo service thread pool did not terminate");
+        }
+      }
+    } catch (InterruptedException ie) {
+      // (Re-)Cancel if current thread also interrupted
+      service.shutdownNow();
+      // Preserve interrupt status
+      Thread.currentThread().interrupt();
+    }
+    if (mongoManager != null) {
+      mongoManager.close();
+    }
+    log.info("MongodbSender closed.");
+  }
 }
