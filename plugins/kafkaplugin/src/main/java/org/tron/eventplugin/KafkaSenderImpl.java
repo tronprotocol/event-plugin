@@ -17,7 +17,6 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.tron.common.logsfilter.trigger.EventTopic;
 
 @Slf4j(topic = "event")
 public class KafkaSenderImpl implements AutoCloseable {
