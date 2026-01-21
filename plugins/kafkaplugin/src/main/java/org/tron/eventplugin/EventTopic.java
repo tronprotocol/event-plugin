@@ -21,9 +21,9 @@ public enum EventTopic {
     this.name = name;
   }
 
-  public static EventTopic getEventTopicByType(int value) {
+  public static EventTopic getEventTopicByType(int topicType) {
     for (EventTopic member : values()) {
-      if (member.getType() == value) {
+      if (member.getType() == topicType) {
         return member;
       }
     }
