@@ -1,4 +1,4 @@
-package org.tron.eventplugin;
+package org.tron.common.logsfilter.trigger;
 
 
 import lombok.Getter;
@@ -21,9 +21,9 @@ public enum EventTopic {
     this.name = name;
   }
 
-  public static EventTopic getEventTopicByType(int topicType) {
+  public static EventTopic getEventTopicByType(int value) {
     for (EventTopic member : values()) {
-      if (member.getType() == topicType) {
+      if (member.getType() == value) {
         return member;
       }
     }

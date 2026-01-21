@@ -28,7 +28,7 @@ public class BlockLogTrigger extends Trigger {
   private List<String> transactionList = new ArrayList<>();
 
   public BlockLogTrigger() {
-    setTriggerName(Trigger.BLOCK_TRIGGER_NAME);
+    setTriggerName(EventTopic.BLOCK_TRIGGER.getName());
   }
 
   @Override

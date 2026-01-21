@@ -39,6 +39,6 @@ public class ContractEventTrigger extends ContractTrigger {
 
   public ContractEventTrigger() {
     super();
-    setTriggerName(Trigger.CONTRACTEVENT_TRIGGER_NAME);
+    setTriggerName(EventTopic.CONTRACT_EVENT_TRIGGER.getName());
   }
 }

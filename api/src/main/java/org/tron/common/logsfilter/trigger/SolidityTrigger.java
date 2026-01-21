@@ -17,6 +17,6 @@ public class SolidityTrigger extends Trigger {
   }
 
   public SolidityTrigger() {
-    setTriggerName(Trigger.SOLIDITY_TRIGGER_NAME);
+    setTriggerName(EventTopic.SOLIDITY_TRIGGER.getName());
   }
 }
