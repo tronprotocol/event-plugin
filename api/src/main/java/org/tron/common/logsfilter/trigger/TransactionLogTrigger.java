@@ -95,6 +95,6 @@ public class TransactionLogTrigger extends Trigger {
   private List<InternalTransactionPojo> internalTrananctionList;
 
   public TransactionLogTrigger() {
-    setTriggerName(Trigger.TRANSACTION_TRIGGER_NAME);
+    setTriggerName(EventTopic.TRANSACTION_TRIGGER.getName());
   }
 }

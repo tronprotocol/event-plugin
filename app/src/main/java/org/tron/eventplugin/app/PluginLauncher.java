@@ -29,7 +29,7 @@ import org.pf4j.ManifestPluginDescriptorFinder;
 import org.pf4j.PluginManager;
 import org.tron.common.logsfilter.IPluginEventListener;
 import org.tron.common.logsfilter.trigger.BlockLogTrigger;
-import org.tron.common.logsfilter.trigger.Trigger;
+import org.tron.common.logsfilter.trigger.EventTopic;
 
 @Slf4j
 public class PluginLauncher {
@@ -69,13 +69,13 @@ public class PluginLauncher {
     });
 
     eventListeners.forEach(listener -> {
-      listener.setTopic(Trigger.BLOCK_TRIGGER, "block");
-      listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
-      listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
-      listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
-      listener.setTopic(Trigger.SOLIDITY_TRIGGER, "solidity");
-      listener.setTopic(Trigger.SOLIDITY_EVENT, "solidityevent");
-      listener.setTopic(Trigger.SOLIDITY_LOG, "soliditylog");
+      listener.setTopic(EventTopic.BLOCK_TRIGGER.getType(), EventTopic.BLOCK_TRIGGER.getName());
+      listener.setTopic(EventTopic.TRANSACTION_TRIGGER.getType(), EventTopic.TRANSACTION_TRIGGER.getName());
+      listener.setTopic(EventTopic.CONTRACT_LOG_TRIGGER.getType(), EventTopic.CONTRACT_LOG_TRIGGER.getName());
+      listener.setTopic(EventTopic.CONTRACT_EVENT_TRIGGER.getType(), EventTopic.CONTRACT_EVENT_TRIGGER.getName());
+      listener.setTopic(EventTopic.SOLIDITY_TRIGGER.getType(), EventTopic.SOLIDITY_TRIGGER.getName());
+      listener.setTopic(EventTopic.SOLIDITY_EVENT.getType(), EventTopic.SOLIDITY_EVENT.getName());
+      listener.setTopic(EventTopic.SOLIDITY_LOG.getType(), EventTopic.SOLIDITY_LOG.getName());
     });
 
     eventListeners.forEach(IPluginEventListener::start);
