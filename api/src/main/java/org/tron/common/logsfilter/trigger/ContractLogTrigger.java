@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class ContractLogTrigger extends ContractTrigger {
+
   /**
    * topic list produced by the smart contract LOG function
    */
@@ -21,6 +22,6 @@ public class ContractLogTrigger extends ContractTrigger {
 
   public ContractLogTrigger() {
     super();
-    setTriggerName(Trigger.CONTRACTLOG_TRIGGER_NAME);
+    setTriggerName(EventTopic.CONTRACT_LOG_TRIGGER.getName());
   }
 }

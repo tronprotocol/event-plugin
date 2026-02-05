@@ -13,97 +13,101 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.tron.eventplugin.app;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.pf4j.CompoundPluginDescriptorFinder;
-import org.pf4j.ManifestPluginDescriptorFinder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.pf4j.DefaultPluginManager;
-import org.pf4j.PluginManager;
-import org.tron.common.logsfilter.IPluginEventListener;
-import org.tron.common.logsfilter.trigger.BlockLogTrigger;
-import org.tron.common.logsfilter.trigger.Trigger;
-
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import lombok.extern.slf4j.Slf4j;
+import org.pf4j.CompoundPluginDescriptorFinder;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.ManifestPluginDescriptorFinder;
+import org.pf4j.PluginManager;
+import org.tron.common.logsfilter.IPluginEventListener;
+import org.tron.common.logsfilter.trigger.BlockLogTrigger;
+import org.tron.common.logsfilter.trigger.EventTopic;
 
+@Slf4j
 public class PluginLauncher {
-    private static final Logger logger = LoggerFactory.getLogger(PluginLauncher.class);
 
-    public static void main(String[] args) {
-        String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
+  public static void main(String[] args) {
+    String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
 
-        File dir = new File(path);
-        // create the plugin manager
-        final PluginManager pluginManager = new DefaultPluginManager(dir.toPath()) {
-            @Override
-            protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
-                return new CompoundPluginDescriptorFinder()
-                    .add(new ManifestPluginDescriptorFinder());
-            }
-        };
+    File dir = new File(path);
+    // create the plugin manager
+    final PluginManager pluginManager = new DefaultPluginManager(dir.toPath()) {
+      @Override
+      protected CompoundPluginDescriptorFinder createPluginDescriptorFinder() {
+        return new CompoundPluginDescriptorFinder()
+            .add(new ManifestPluginDescriptorFinder());
+      }
+    };
 
-        File file = new File(path);
+    File file = new File(path);
 
-        pluginManager.loadPlugin(file.toPath());
-        pluginManager.startPlugins();
+    pluginManager.loadPlugin(file.toPath());
+    pluginManager.startPlugins();
 
-        List<IPluginEventListener> eventListeners;
-        eventListeners = pluginManager.getExtensions(IPluginEventListener.class);
+    List<IPluginEventListener> eventListeners;
+    eventListeners = pluginManager.getExtensions(IPluginEventListener.class);
 
-        if (Objects.isNull(eventListeners)) return;
-
-        eventListeners.forEach(listener -> {
-            listener.setServerAddress("127.0.0.1:27017");
-        });
-
-        eventListeners.forEach(listener -> {
-            listener.setDBConfig("eventlog|tron|123456");
-        });
-
-        eventListeners.forEach(listener -> {
-            listener.setTopic(Trigger.BLOCK_TRIGGER, "block");
-            listener.setTopic(Trigger.TRANSACTION_TRIGGER, "transaction");
-            listener.setTopic(Trigger.CONTRACTEVENT_TRIGGER, "contractevent");
-            listener.setTopic(Trigger.CONTRACTLOG_TRIGGER, "contractlog");
-            listener.setTopic(Trigger.SOLIDITY_TRIGGER, "solidity");
-            listener.setTopic(Trigger.SOLIDITY_EVENT, "solidityevent");
-            listener.setTopic(Trigger.SOLIDITY_LOG, "soliditylog");
-
-        });
-
-        eventListeners.forEach(listener -> {
-            listener.start();
-        });
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        for (int index = 0; index < 1000; ++index){
-            BlockLogTrigger trigger = new BlockLogTrigger();
-            trigger.setBlockNumber(index);
-            trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659e");
-            trigger.setTimeStamp(System.currentTimeMillis());
-            trigger.setTransactionSize(100);
-
-            eventListeners.forEach(listener -> {
-                try {
-                    listener.handleBlockEvent(objectMapper.writeValueAsString(trigger));
-                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        while (true){
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //pluginManager.stopPlugins();
+    log.info("start plugin...");
+    if (Objects.isNull(eventListeners)) {
+      return;
     }
+
+    eventListeners.forEach(listener -> {
+      listener.setServerAddress("127.0.0.1:27017");
+    });
+
+    eventListeners.forEach(listener -> {
+      listener.setDBConfig("eventlog|tron|123456");
+    });
+
+    eventListeners.forEach(listener -> {
+      listener.setTopic(EventTopic.BLOCK_TRIGGER.getType(), EventTopic.BLOCK_TRIGGER.getName());
+      listener.setTopic(EventTopic.TRANSACTION_TRIGGER.getType(), EventTopic.TRANSACTION_TRIGGER.getName());
+      listener.setTopic(EventTopic.CONTRACT_LOG_TRIGGER.getType(), EventTopic.CONTRACT_LOG_TRIGGER.getName());
+      listener.setTopic(EventTopic.CONTRACT_EVENT_TRIGGER.getType(), EventTopic.CONTRACT_EVENT_TRIGGER.getName());
+      listener.setTopic(EventTopic.SOLIDITY_TRIGGER.getType(), EventTopic.SOLIDITY_TRIGGER.getName());
+      listener.setTopic(EventTopic.SOLIDITY_EVENT.getType(), EventTopic.SOLIDITY_EVENT.getName());
+      listener.setTopic(EventTopic.SOLIDITY_LOG.getType(), EventTopic.SOLIDITY_LOG.getName());
+    });
+
+    eventListeners.forEach(IPluginEventListener::start);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    for (int index = 0; index < 2; ++index) {
+      BlockLogTrigger trigger = new BlockLogTrigger();
+      trigger.setBlockNumber(new Random().nextInt(10000)); //blockNumber is unique key
+      trigger.setBlockHash("000000000002f5834df6036318999576bfa23ff1a57e0538fa87d5a90319659f");
+      trigger.setTimeStamp(System.currentTimeMillis());
+      trigger.setTransactionSize(100);
+
+      String triggerData;
+      try {
+        triggerData = objectMapper.writeValueAsString(trigger);//convert to json
+      } catch (JsonProcessingException e) {
+        log.error("", e);
+        continue;
+      }
+      eventListeners.forEach(listener -> {
+        listener.handleBlockEvent(triggerData);
+      });
+    }
+
+    try {
+      Thread.sleep(10_000);
+    } catch (InterruptedException e) {
+      //ignore
+    }
+    log.info("try to close plugin...");
+
+    // will invoke stop method of KafkaLogFilterPlugin or MongodbLogFilterPlugin
+    pluginManager.stopPlugins();
+  }
 }

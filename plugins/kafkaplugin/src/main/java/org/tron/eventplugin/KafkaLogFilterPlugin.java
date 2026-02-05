@@ -5,16 +5,16 @@ import org.pf4j.PluginWrapper;
 
 public class KafkaLogFilterPlugin extends Plugin {
 
-    public KafkaLogFilterPlugin(PluginWrapper wrapper) {
-        super(wrapper);
-    }
+  public KafkaLogFilterPlugin(PluginWrapper wrapper) {
+    super(wrapper);
+  }
 
-    @Override
-    public void start() {
-    }
+  @Override
+  public void start() {
+  }
 
-    @Override
-    public void stop() {
-        MessageSenderImpl.getInstance().close();
-    }
+  @Override
+  public void stop() {
+    KafkaSenderImpl.getInstance().close();
+  }
 }

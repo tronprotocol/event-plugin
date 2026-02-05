@@ -1,6 +1,5 @@
 package org.tron.common.logsfilter.trigger;
 
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -96,6 +95,6 @@ public class TransactionLogTrigger extends Trigger {
   private List<InternalTransactionPojo> internalTrananctionList;
 
   public TransactionLogTrigger() {
-    setTriggerName(Trigger.TRANSACTION_TRIGGER_NAME);
+    setTriggerName(EventTopic.TRANSACTION_TRIGGER.getName());
   }
 }

@@ -4,20 +4,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class SolidityTrigger extends Trigger {
+
   @Getter
   @Setter
   private long latestSolidifiedBlockNumber;
 
   @Override
   public String toString() {
-    return new StringBuilder().append("triggerName: ").append(getTriggerName())
-        .append("timestamp: ")
-        .append(timeStamp)
-        .append(", latestSolidifiedBlockNumber: ")
-        .append(latestSolidifiedBlockNumber).toString();
+    return "triggerName: " + getTriggerName()
+        + ", timestamp: " + timeStamp
+        + ", latestSolidifiedBlockNumber: " + latestSolidifiedBlockNumber;
   }
 
   public SolidityTrigger() {
-    setTriggerName(Trigger.SOLIDITY_TRIGGER_NAME);
+    setTriggerName(EventTopic.SOLIDITY_TRIGGER.getName());
   }
 }

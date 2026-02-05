@@ -3,7 +3,7 @@ package org.tron.common.logsfilter.trigger;
 import lombok.Getter;
 import lombok.Setter;
 
-public class ContractTrigger extends Trigger {
+public abstract class ContractTrigger extends Trigger {
 
   /**
    * id of the transaction which produce this event.
