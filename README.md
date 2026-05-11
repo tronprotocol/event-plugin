@@ -12,7 +12,7 @@ Event-plugin can be built with JDK 8 or JDK 17.
 2. Go to eventplugin `cd eventplugin` 
 3. run `./gradlew build`
 
-* This will produce plugin zips, named `plugin-kafka-1.0.0.zip` and `plugin-mongodb-1.0.0.zip`, located in the `eventplugin/build/plugins/` directory.
+* This will produce plugin zips, named `plugin-kafka-{version}.zip` and `plugin-mongodb-{version}.zip`, located in the `eventplugin/build/plugins/` directory.
 
 
 ### Edit **config.conf** of Java-tron, add the following fields:
@@ -82,7 +82,7 @@ event.subscribe = {
 
 
 ```
- * **path**: is the absolute path of "plugin-kafka-1.0.0.zip" or "plugin-mongodb-1.0.0.zip"
+ * **path**: is the absolute path of "plugin-kafka-{version}.zip" or "plugin-mongodb-{version}.zip"
  * **server**: Kafka(or MongoDB) server address, the default port is 9092(MongoDB is 27017)
  * **dbconfig**: db configuration information for mongodb, if using kafka, delete this one; if using Mongodb, add like that dbname|username|password or dbname|username|password|version if you want to create indexes when init
  * **topics**: each event type maps to one Kafka topic(or MongoDB collection), we support seven event types subscribing, block, transaction, contractlog, contractevent, solidity, soliditylog and solidityevent.   

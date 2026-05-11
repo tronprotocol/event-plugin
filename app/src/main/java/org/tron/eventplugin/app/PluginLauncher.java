@@ -35,7 +35,7 @@ import org.tron.common.logsfilter.trigger.EventTopic;
 public class PluginLauncher {
 
   public static void main(String[] args) {
-    String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-1.0.0.zip";
+    String path = "/Users/tron/sourcecode/eventplugin/build/plugins/plugin-mongodb-{version}.zip";
 
     File dir = new File(path);
     // create the plugin manager

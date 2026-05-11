@@ -1,6 +1,7 @@
 package org.tron.eventplugin;
 
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 @Slf4j(topic = "event")
 public class KafkaSenderImpl implements AutoCloseable {
 
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private static KafkaSenderImpl instance = null;
 
   @Setter
@@ -220,13 +222,13 @@ public class KafkaSenderImpl implements AutoCloseable {
               continue;
             }
             // check if it's json
-            JSONObject jsonObject = JSONObject.parseObject(triggerData);
+            JsonNode jsonObject = OBJECT_MAPPER.readTree(triggerData);
 
-            if (!jsonObject.containsKey("triggerName")) {
+            if (!jsonObject.has("triggerName")) {
               log.error("Invalid triggerData without triggerName: {}", triggerData);
               continue;
             }
-            String triggerName = jsonObject.getString("triggerName");
+            String triggerName = getString(jsonObject, "triggerName");
             EventTopic eventTopic = EventTopic.getEventTopicByName(triggerName);
             if (eventTopic == null) {
               log.error("Not matched triggerName {} in data {}", triggerName, triggerData);
@@ -265,6 +267,14 @@ public class KafkaSenderImpl implements AutoCloseable {
           }
         }
       };
+
+  private String getString(JsonNode node, String key) {
+    JsonNode value = node.get(key);
+    if (Objects.isNull(value) || value.isNull()) {
+      return null;
+    }
+    return value.asText();
+  }
 
   @Override
   public void close() {
