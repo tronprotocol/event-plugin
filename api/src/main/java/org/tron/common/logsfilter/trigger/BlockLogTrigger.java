@@ -27,6 +27,10 @@ public class BlockLogTrigger extends Trigger {
   @Setter
   private List<String> transactionList = new ArrayList<>();
 
+  @Getter
+  @Setter
+  private String parentHash;
+
   public BlockLogTrigger() {
     setTriggerName(EventTopic.BLOCK_TRIGGER.getName());
   }
@@ -37,6 +41,7 @@ public class BlockLogTrigger extends Trigger {
         + ", timestamp: " + timeStamp
         + ", blockNumber: " + blockNumber
         + ", blockhash: " + blockHash
+        + ", parentHash: " + parentHash
         + ", transactionSize: " + transactionSize
         + ", latestSolidifiedBlockNumber: " + latestSolidifiedBlockNumber
         + ", transactionList: " + transactionList;
