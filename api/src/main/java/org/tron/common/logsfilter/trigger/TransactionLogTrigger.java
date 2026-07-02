@@ -94,6 +94,13 @@ public class TransactionLogTrigger extends Trigger {
   @Setter
   private List<InternalTransactionPojo> internalTrananctionList;
 
+  /**
+   * true if the transaction has been revoked
+   */
+  @Getter
+  @Setter
+  private boolean removed;
+
   public TransactionLogTrigger() {
     setTriggerName(EventTopic.TRANSACTION_TRIGGER.getName());
   }
