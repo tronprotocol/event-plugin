@@ -27,6 +27,13 @@ public class BlockLogTrigger extends Trigger {
   @Setter
   private List<String> transactionList = new ArrayList<>();
 
+  /**
+   * true if the block has been revoked
+   */
+  @Getter
+  @Setter
+  private boolean removed;
+
   public BlockLogTrigger() {
     setTriggerName(EventTopic.BLOCK_TRIGGER.getName());
   }
