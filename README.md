@@ -37,31 +37,31 @@ event.subscribe = {
         triggerName = "block" // block trigger, the value can't be modified
         enable = false        // Whether to enable this trigger.
         topic = "block"       // plugin topic, the value could be modified
-        solidified = false    // if set true, just need solidified block. Default: false
+        solidified = true    // if set true, just need solidified block. Default: false
       },
       {
         triggerName = "transaction"
         enable = false
         topic = "transaction"
-        solidified = false
+        solidified = true
         // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, energyUnitPrice.
         // Default: false
         ethCompatible = false
       },
       {
         triggerName = "contractevent" // contractevent represents contractlog data decoded by the ABI.
-        enable = false
+        enable = true
         topic = "contractevent"
       },
       {
         triggerName = "contractlog"
-        enable = false
+        enable = true
         topic = "contractlog"
-        redundancy = false // if set true, contractevent will also be regarded as contractlog
+        redundancy = true // if set true, contractevent will also be regarded as contractlog
       },
       {
         triggerName = "solidity" // solidity block trigger (just block number and timestamp), the value can't be modified
-        enable = false
+        enable = true
         topic = "solidity"
       },
       {
@@ -73,7 +73,7 @@ event.subscribe = {
         triggerName = "soliditylog"
         enable = false
         topic = "soliditylog"
-        redundancy = false // if set true, solidityevent will also be regarded as soliditylog
+        redundancy = true // if set true, solidityevent will also be regarded as soliditylog
       }
     ]
 
