@@ -18,65 +18,77 @@ Event-plugin can be built with JDK 8 or JDK 17.
 ### Edit **config.conf** of Java-tron, add the following fields:
 ```
 event.subscribe = {
-    path = "" // absolute path of plugin
-    server = "" // target server address to receive event triggers
-    # dbname|username|password or dbname|username|password|version
-    # If you use version 2 and one collection not exists, it will create index automatically;
-    # In any other case, it will not create index, you must create index manually
+    enable = true # Whether to enable event subscription.
+
+    version = 0 # Event subscription version.
+    # Specify the starting block number to sync historical events. Only applicable when version = 1.
+    # After performing a full event sync, set this value to 0 or a negative number.
+    startSyncBlockNum = 0
+    path = ""   // absolute path of plugin
+    server = "" // target server address to receive event triggers, "ip:port"
+    # dbname|username|password. To auto-create indexes on missing collections, append |2:
+    # dbname|username|password|2 (if collection exists, indexes must be created manually).
     dbconfig = ""
+    contractParse = true # Whether to parse contract event data.
+
+    # Event trigger topics.
     topics = [
-        {
-          triggerName = "block" // block trigger, the value can't be modified
-          enable = false
-          topic = "block" // plugin topic, the value could be modified
-          solidified = true // if set true, just need solidified block, default is false
-        },
-        {
-          triggerName = "transaction"
-          enable = false
-          topic = "transaction"
-          solidified = true
-          ethCompatible = true // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, energyUnitPrice, default is false
-        },
-        {
-          triggerName = "contractevent"
-          enable = true
-          topic = "contractevent"
-        },
-        {
-          triggerName = "contractlog"
-          enable = true
-          topic = "contractlog"
-          redundancy = true // if set true, contractevent will also be regarded as contractlog
-        },
-        {
-          triggerName = "solidity" // solidity block trigger(just include solidity block number and timestamp), the value can't be modified
-          enable = true            // the default value is true
-          topic = "solidity"
-        },
-        {
-          triggerName = "solidityevent"
-          enable = false
-          topic = "solidityevent"
-        },
-        {
-          triggerName = "soliditylog"
-          enable = false
-          topic = "soliditylog"
-          redundancy = true // if set true, solidityevent will also be regarded as soliditylog
-        }
+      {
+        triggerName = "block" // block trigger, the value can't be modified
+        enable = false        // Whether to enable this trigger.
+        topic = "block"       // plugin topic, the value could be modified
+        solidified = false    // if set true, just need solidified block. Default: false
+      },
+      {
+        triggerName = "transaction"
+        enable = false
+        topic = "transaction"
+        solidified = false
+        // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, energyUnitPrice.
+        // Default: false
+        ethCompatible = false
+      },
+      {
+        triggerName = "contractevent" // contractevent represents contractlog data decoded by the ABI.
+        enable = false
+        topic = "contractevent"
+      },
+      {
+        triggerName = "contractlog"
+        enable = false
+        topic = "contractlog"
+        redundancy = false // if set true, contractevent will also be regarded as contractlog
+      },
+      {
+        triggerName = "solidity" // solidity block trigger (just block number and timestamp), the value can't be modified
+        enable = false
+        topic = "solidity"
+      },
+      {
+        triggerName = "solidityevent"
+        enable = false
+        topic = "solidityevent"
+      },
+      {
+        triggerName = "soliditylog"
+        enable = false
+        topic = "soliditylog"
+        redundancy = false // if set true, solidityevent will also be regarded as soliditylog
+      }
     ]
 
+    # Event filter settings.
     filter = {
-       fromblock = "" // the value could be "", "earliest" or a specified block number as the beginning of the queried range
-       toblock = "" // the value could be "", "latest" or a specified block number as end of the queried range
-       contractAddress = [
-           "" // contract address you want to subscribe, if it's set to "", you will receive contract logs/events with any contract address.
-       ]
-
-       contractTopic = [
-           "" // contract topic you want to subscribe, if it's set to "", you will receive contract logs/events with any contract topic.
-       ]
+      fromblock = "" // "", "earliest", or a specific block number as the beginning of the queried range
+      toblock = ""   // "", "latest", or a specific block number as end of the queried range
+      // Contract addresses to subscribe; "" means any contract address.
+      contractAddress = [
+        ""
+      ]
+      // Contract topics to subscribe; "" means any contract topic.
+      contractTopic = [
+        ""
+      ]
     }
 }
 
