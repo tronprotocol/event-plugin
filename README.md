@@ -15,7 +15,7 @@ Event-plugin can be built with JDK 8 or JDK 17.
 * This will produce plugin zips, named `plugin-kafka-{version}.zip` and `plugin-mongodb-{version}.zip`, located in the `eventplugin/build/plugins/` directory.
 
 
-### Edit **config.conf** of Java-tron, add the following fields:
+### Edit **[config.conf](https://github.com/tronprotocol/java-tron/blob/develop/framework/src/main/resources/config.conf)** of Java-tron, update the following fields as necessary:
 ```
 event.subscribe = {
     enable = true # Whether to enable event subscription.
