@@ -1,7 +1,7 @@
 package org.tron.eventplugin;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +22,7 @@ import org.tron.mongodb.MongoTemplate;
 @Slf4j(topic = "event")
 public class MongodbSenderImpl implements AutoCloseable {
 
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private static MongodbSenderImpl instance = null;
   @Getter
   BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
@@ -270,8 +271,8 @@ public class MongodbSenderImpl implements AutoCloseable {
   public void upsertEntityLong(MongoTemplate template, Object data, String indexKey) {
     String dataStr = (String) data;
     try {
-      JSONObject jsStr = JSON.parseObject(dataStr);
-      Long indexValue = jsStr.getLong(indexKey);
+      JsonNode jsStr = OBJECT_MAPPER.readTree(dataStr);
+      Long indexValue = getLong(jsStr, indexKey);
       if (indexValue != null) {
         template.upsertEntity(indexKey, indexValue, dataStr);
       } else {
@@ -285,8 +286,8 @@ public class MongodbSenderImpl implements AutoCloseable {
   public void upsertEntityString(MongoTemplate template, Object data, String indexKey) {
     String dataStr = (String) data;
     try {
-      JSONObject jsStr = JSON.parseObject(dataStr);
-      String indexValue = jsStr.getString(indexKey);
+      JsonNode jsStr = OBJECT_MAPPER.readTree(dataStr);
+      String indexValue = getString(jsStr, indexKey);
       if (indexValue != null) {
         template.upsertEntity(indexKey, indexValue, dataStr);
       } else {
@@ -379,8 +380,8 @@ public class MongodbSenderImpl implements AutoCloseable {
         String dataStr = (String) data;
         if (dataStr.contains("\"removed\":true")) {
           try {
-            JSONObject jsStr = JSON.parseObject(dataStr);
-            String uniqueId = jsStr.getString("uniqueId");
+            JsonNode jsStr = OBJECT_MAPPER.readTree(dataStr);
+            String uniqueId = getString(jsStr, "uniqueId");
             if (uniqueId != null) {
               template.delete("uniqueId", uniqueId);
             }
@@ -426,13 +427,13 @@ public class MongodbSenderImpl implements AutoCloseable {
               continue;
             }
             // check if it's json
-            JSONObject jsonObject = JSONObject.parseObject(triggerData);
+            JsonNode jsonObject = OBJECT_MAPPER.readTree(triggerData);
 
-            if (!jsonObject.containsKey("triggerName")) {
+            if (!jsonObject.has("triggerName")) {
               log.error("Invalid triggerData without triggerName: {}", triggerData);
               continue;
             }
-            String triggerName = jsonObject.getString("triggerName");
+            String triggerName = getString(jsonObject, "triggerName");
             EventTopic eventTopic = EventTopic.getEventTopicByName(triggerName);
             if (eventTopic == null) {
               log.error("Not matched triggerName {} in data {}", triggerName, triggerData);
@@ -471,6 +472,29 @@ public class MongodbSenderImpl implements AutoCloseable {
           }
         }
       };
+
+  private Long getLong(JsonNode node, String key) {
+    JsonNode value = node.get(key);
+    if (Objects.isNull(value) || value.isNull()) {
+      return null;
+    }
+    if (value.isNumber()) {
+      return value.longValue();
+    }
+    String valueText = value.asText(null);
+    if (StringUtils.isNullOrEmpty(valueText)) {
+      return null;
+    }
+    return Long.parseLong(valueText);
+  }
+
+  private String getString(JsonNode node, String key) {
+    JsonNode value = node.get(key);
+    if (Objects.isNull(value) || value.isNull()) {
+      return null;
+    }
+    return value.asText();
+  }
 
   @Override
   public void close() {
