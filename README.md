@@ -46,7 +46,7 @@ event.subscribe = {
         solidified = true
         // if set true, add transactionIndex, cumulativeEnergyUsed, preCumulativeLogCount, logList, energyUnitPrice.
         // Default: false
-        ethCompatible = false
+        ethCompatible = true
       },
       {
         triggerName = "contractevent" // contractevent represents contractlog data decoded by the ABI.
